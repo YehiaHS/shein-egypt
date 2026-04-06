@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHEIN AI Outfit Finder — Interactive Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#FF3131;--red-glow:rgba(255,49,49,.35);
+  --black:#0a0a0a;--dark:#030508;--white:#FFFFF9;
+}
+html,body{width:100%;min-height:100vh;background:var(--dark);
+  font-family:'Montserrat',sans-serif;color:var(--white);overflow-x:hidden;}
+
+/* Background particles canvas */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* Grain overlay */
+#grain{position:fixed;inset:0;z-index:500;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Hero header */
+.hero{position:relative;z-index:10;text-align:center;padding:48px 20px 20px;}
+.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;letter-spacing:-2px;}
+.hero h1 em{color:var(--red);font-style:normal;}
+.hero .subtitle{font-family:'Dancing Script',cursive;font-style:italic;
+  font-size:1.3rem;color:rgba(255,255,249,.5);margin-top:8px;}
+
+/* Phone + 3D container */
+.phone-stage{
+  position:relative;z-index:10;
+  width:100%;max-width:900px;margin:20px auto 0;
+  height:600px;
+}
+#scene-canvas{position:absolute;inset:0;width:100%;height:100%;}
+
+/* Overlay UI on phone stage */
+.stage-ui{position:absolute;top:24px;right:28px;z-index:10;width:280px;}
+.stage-tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,249,.4);margin-bottom:6px;}
+.stage-heading{font-size:20px;font-weight:700;color:var(--white);margin-bottom:12px;}
+.stage-heading em{color:var(--red);font-style:italic;}
+
+/* Analysis panel */
+.analysis-panel{position:absolute;bottom:28px;left:28px;right:28px;z-index:10;
+  display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;justify-content:center;}
+.stat-card{background:rgba(5,5,15,.85);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,49,49,.25);border-radius:10px;
+  padding:14px 20px;min-width:140px;text-align:center;}
+.stat-card .label{font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,249,.4);margin-bottom:4px;}
+.stat-card .value{font-size:28px;font-weight:900;color:var(--white);transition:color .3s;}
+.stat-card .value.active{color:var(--red);}
+
+/* Action bar */
+.action-bar{position:relative;z-index:10;text-align:center;margin:24px 0 40px;}
+#snap-btn{background:var(--red);color:#fff;border:none;border-radius:50px;
+  padding:16px 48px;font-size:16px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;transition:all .3s;
+  box-shadow:0 0 30px var(--red-glow);}
+#snap-btn:hover{transform:scale(1.05);box-shadow:0 0 50px var(--red-glow);}
+#snap-btn:active{transform:scale(.96);}
+#snap-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+.phase-hint{font-family:'Dancing Script',cursive;font-style:italic;
+  font-size:1.1rem;color:rgba(255,255,249,.35);margin-top:12px;}
+
+/* Recommendations section */
+.recommendations{position:relative;z-index:10;max-width:900px;margin:0 auto 60px;padding:0 24px;}
+.rec-title{font-size:14px;letter-spacing:3px;text-transform:uppercase;
+  color:rgba(255,255,249,.4);text-align:center;margin-bottom:20px;}
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;}
+.rec-card{background:rgba(10,10,10,.8);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;overflow:hidden;cursor:pointer;transition:all .3s;
+  opacity:0;transform:translateY(20px);}
+.rec-card.show{opacity:1;transform:none;}
+.rec-card:hover{border-color:var(--red);box-shadow:0 0 20px var(--red-glow);transform:translateY(-4px);}
+.rec-img{width:100%;height:200px;background:#151515;display:flex;
+  align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.rec-badge{position:absolute;top:10px;left:10px;background:var(--red);
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1px;}
+.rec-info{padding:12px 14px;}
+.rec-name{font-size:12px;font-weight:600;margin-bottom:4px;}
+.rec-price{font-size:14px;font-weight:900;color:var(--red);}
+.rec-old{font-size:11px;color:rgba(255,255,249,.35);text-decoration:line-through;margin-left:6px;}
+
+/* Feature pills */
+.features-row{position:relative;z-index:10;display:flex;gap:12px;
+  justify-content:center;flex-wrap:wrap;margin:0 auto 32px;max-width:700px;padding:0 20px;}
+.feat-pill{border:1px solid rgba(255,49,49,.3);border-radius:20px;
+  padding:8px 18px;font-size:11px;font-weight:600;letter-spacing:1px;
+  color:var(--white);display:flex;align-items:center;gap:6px;
+  background:rgba(255,49,17,.06);}
+.feat-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--red);
+  animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="grain"></div>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>SHEIN <em>AI</em> Outfit Finder</h1>
+  <div class="subtitle">Snap a photo, let AI style your wardrobe</div>
+</div>
+
+<!-- Feature pills -->
+<div class="features-row">
+  <div class="feat-pill"><span class="dot"></span> Style Match</div>
+  <div class="feat-pill"><span class="dot"></span> Size Guide</div>
+  <div class="feat-pill"><span class="dot"></span> Trend Alert</div>
+  <div class="feat-pill"><span class="dot"></span> Colour AI</div>
+  <div class="feat-pill"><span class="dot"></span> Wardrobe Sync</div>
+</div>
+
+<!-- 3D Phone Stage -->
+<div class="phone-stage">
+  <canvas id="scene-canvas"></canvas>
+
+  <div class="stage-ui">
+    <div class="stage-tag">Live Demo &middot; 2026</div>
+    <div class="stage-heading">Tap <em>Snap</em> to scan your outfit</div>
+  </div>
+
+  <div class="analysis-panel">
+    <div class="stat-card">
+      <div class="label">Style Match</div>
+      <div class="value" id="stat-match">--%</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Trend Score</div>
+      <div class="value" id="stat-trend">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Size Accuracy</div>
+      <div class="value" id="stat-size">--</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Colour Harmony</div>
+      <div class="value" id="stat-color">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- Snapshot button -->
+<div class="action-bar">
+  <button id="snap-btn">Snap Photo</button>
+  <div class="phase-hint" id="phase-hint">Point your camera at any outfit</div>
+</div>
+
+<!-- Recommendations -->
+<div class="recommendations">
+  <div class="rec-title">Recommended for You</div>
+  <div class="rec-grid" id="rec-grid">
+    <div class="rec-card" id="rec1">
+      <div class="rec-img" id="rec-img1">
+        <div class="rec-badge">94% Match</div>
+      </div>
+      <div class="rec-info">
+        <div class="rec-name">Floral Chiffon Maxi Dress</div>
+        <div class="rec-price">449 EGP <span class="rec-old">899</span></div>
+      </div>
+    </div>
+    <div class="rec-card" id="rec2">
+      <div class="rec-img" id="rec-img2">
+        <div class="rec-badge">89% Match</div>
+      </div>
+      <div class="rec-info">
+        <div class="rec-name">Ribbed High-Waist Co-ord Set</div>
+        <div class="rec-price">375 EGP <span class="rec-old">750</span></div>
+      </div>
+    </div>
+    <div class="rec-card" id="rec3">
+      <div class="rec-img" id="rec-img3">
+        <div class="rec-badge">91% Match</div>
+      </div>
+      <div class="rec-info">
+        <div class="rec-name">Embroidered Evening Abaya</div>
+        <div class="rec-price">699 EGP <span class="rec-old">1299</span></div>
+      </div>
+    </div>
+    <div class="rec-card" id="rec4">
+      <div class="rec-img" id="rec-img4">
+        <div class="rec-badge">87% Match</div>
+      </div>
+      <div class="rec-info">
+        <div class="rec-name">Casual Linen Shirt Dress</div>
+        <div class="rec-price">299 EGP <span class="rec-old">599</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+drawRecImg('rec-img1','dress');
+drawRecImg('rec-img2','set');
+drawRecImg('rec-img3','abaya');
+drawRecImg('rec-img4','lindress');
+
+function drawRecImg(id,type){
+  var cv=document.createElement('canvas');cv.width=360;cv.height=400;
+  var c=cv.getContext('2d');
+  c.fillStyle='#151515';c.fillRect(0,0,360,400);
+  c.strokeStyle='rgba(255,255,249,0.12)';c.lineWidth=1.5;
+  if(type==='dress'){
+    c.beginPath();c.arc(180,80,18,0,Math.PI*2);c.stroke();
+    c.beginPath();c.moveTo(150,105);c.lineTo(130,180);c.lineTo(100,340);
+    c.lineTo(260,340);c.lineTo(230,180);c.lineTo(210,105);c.stroke();
+  }else if(type==='set'){
+    c.beginPath();c.arc(180,80,18,0,Math.PI*2);c.stroke();
+    c.beginPath();c.moveTo(148,105);c.lineTo(140,200);c.lineTo(155,200);
+    c.lineTo(148,115);c.stroke();
+    c.beginPath();c.moveTo(212,105);c.lineTo(220,200);c.lineTo(205,200);
+    c.lineTo(212,115);c.stroke();
+    c.beginPath();c.moveTo(145,200);c.lineTo(135,330);c.lineTo(175,330);
+    c.lineTo(180,200);c.stroke();
+    c.beginPath();c.moveTo(185,200);c.lineTo(185,330);c.lineTo(225,330);
+    c.lineTo(215,200);c.stroke();
+  }else if(type==='abaya'){
+    c.beginPath();c.arc(180,70,20,0,Math.PI*2);c.stroke();
+    c.beginPath();c.moveTo(140,98);c.lineTo(95,350);
+    c.quadraticCurveTo(180,370,265,350);c.lineTo(220,98);c.stroke();
+    c.beginPath();c.moveTo(140,110);c.lineTo(105,250);c.lineTo(118,255);
+    c.lineTo(148,130);c.stroke();
+    c.beginPath();c.moveTo(220,110);c.lineTo(255,250);c.lineTo(242,255);
+    c.lineTo(212,130);c.stroke();
+  }else{
+    c.beginPath();c.arc(180,80,18,0,Math.PI*2);c.stroke();
+    c.beginPath();c.moveTo(145,105);c.lineTo(130,170);c.lineTo(110,330);
+    c.lineTo(250,330);c.lineTo(230,170);c.lineTo(215,105);c.stroke();
+    c.beginPath();c.moveTo(145,105);c.lineTo(145,330);c.stroke();
+    c.beginPath();c.moveTo(215,105);c.lineTo(215,330);c.stroke();
+  }
+  c.fillStyle='rgba(255,49,49,0.06)';c.fillRect(0,0,360,400);
+  var img=document.createElement('img');
+  img.src=cv.toDataURL();img.style.cssText='width:100%;height:100%;object-fit:cover;';
+  document.getElementById(id).appendChild(img);
+}
+
+// ═══════════════════════════════════════════════════════
+//  3D PHONE SCENE
+// ═══════════════════════════════════════════════════════
+(function(){
+  var canvas = document.getElementById('scene-canvas');
+  var W = canvas.clientWidth, H = canvas.clientHeight;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x030508);
+
+  var camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 200);
+  camera.position.set(0, 0.5, 8);
+  camera.lookAt(0, 0, 0);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+  var redPt = new THREE.PointLight(0xff3131, 4, 14);
+  redPt.position.set(-3.5, 2.5, 3); scene.add(redPt);
+  var bluePt = new THREE.PointLight(0x2244ff, 2.5, 12);
+  bluePt.position.set(3.5, -2, 3); scene.add(bluePt);
+  var dirL = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirL.position.set(0, 6, 4); scene.add(dirL);
+
+  // ── AI Screen Canvas Texture ──
+  var aiCanvas = document.createElement('canvas');
+  aiCanvas.width = 512; aiCanvas.height = 1024;
+
+  var scanPhase = 'idle'; // idle | scanning | complete
+  var scanY = 60;
+
+  function createAIScreen(scanY, outfitData) {
+    var cv = aiCanvas;
+    var ctx = cv.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#050a15';
+    ctx.fillRect(0, 0, 512, 1024);
+
+    // Status bar
+    ctx.fillStyle = '#FF3131';
+    ctx.fillRect(0, 0, 512, 48);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('SHEIN AI Outfit Finder', 256, 32);
+
+    // Viewfinder box
+    var vx = 30, vy = 65, vw = 452, vh = 340;
+    ctx.strokeStyle = scanPhase === 'scanning' ? '#FF3131' :
+                      scanPhase === 'complete' ? '#33ff99' : 'rgba(255,49,49,0.4)';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(vx, vy, vw, vh);
+
+    // Scan line
+    if (scanPhase === 'scanning' && scanY !== undefined) {
+      var grad = ctx.createLinearGradient(0, scanY - 12, 0, scanY + 12);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(0.5, 'rgba(255,49,49,0.6)');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fillRect(vx, scanY - 12, vw, 24);
+
+      ctx.strokeStyle = '#FF3131'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(vx, scanY); ctx.lineTo(vx+vw, scanY); ctx.stroke();
+    }
+
+    // Grid
+    ctx.strokeStyle = 'rgba(255,49,49,0.12)'; ctx.lineWidth = 1;
+    [180,330].forEach(function(x){ctx.beginPath();ctx.moveTo(x,vy);ctx.lineTo(x,vy+vh);ctx.stroke();});
+    [178,300].forEach(function(y){ctx.beginPath();ctx.moveTo(vx,y);ctx.lineTo(vx+vw,y);ctx.stroke();});
+
+    // Corners
+    ctx.strokeStyle = '#FF3131'; ctx.lineWidth = 4;
+    [[vx,vy,1,1],[vx+vw,vy,-1,1],[vx,vy+vh,1,-1],[vx+vw,vy+vh,-1,-1]].forEach(function(c){
+      ctx.beginPath();
+      ctx.moveTo(c[0], c[1]+c[3]*30);ctx.lineTo(c[0],c[1]);
+      ctx.lineTo(c[0]+c[2]*30, c[1]); ctx.stroke();
+    });
+
+    // Outfit items in viewfinder
+    if (outfitData && outfitData.length > 0) {
+      outfitData.forEach(function(item) {
+        ctx.strokeStyle = scanPhase === 'complete' ? 'rgba(51,255,153,0.5)' : 'rgba(255,255,249,0.15)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6,3]);
+        ctx.strokeRect(item.x, item.y, item.w, item.h);
+        ctx.setLineDash([]);
+        ctx.fillStyle = scanPhase === 'complete' ? '#33ff99' : 'rgba(255,49,49,0.7)';
+        ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
+        ctx.fillText(item.label, item.x+4, item.y-4);
+      });
+    }
+
+    // Fashion figure silhouette
+    var silAlpha = scanPhase === 'complete' ? 0.5 : 0.2;
+    ctx.strokeStyle = 'rgba(255,255,249,' + silAlpha + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(256, 140, 16, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(230, 162); ctx.lineTo(210, 215); ctx.lineTo(180, 390);
+    ctx.lineTo(332, 390); ctx.lineTo(302, 215); ctx.lineTo(282, 162);
+    ctx.stroke();
+
+    // Phase text
+    if (scanPhase === 'idle') {
+      ctx.fillStyle = 'rgba(255,255,249,0.5)';
+      ctx.font = '22px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('Point camera at an outfit', 256, 460);
+      ctx.fillStyle = 'rgba(255,49,49,0.4)';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText('Tap Snap to begin', 256, 490);
+    } else if (scanPhase === 'scanning') {
+      ctx.fillStyle = '#FF3131';
+      ctx.font = 'bold 24px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('ANALYZING...', 256, 460);
+      ctx.fillStyle = 'rgba(255,255,249,0.3)';
+      ctx.font = '16px Arial';
+      ctx.fillText('Detecting pieces...', 256, 488);
+    } else {
+      ctx.fillStyle = '#33ff99';
+      ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center';
+      ctx.fillText('Analysis Complete', 256, 460);
+    }
+
+    // Match score
+    if (scanPhase === 'complete') {
+      ctx.fillStyle = '#FFFFF9';
+      ctx.font = 'bold 72px Arial'; ctx.textAlign = 'center';
+      ctx.fillText(currentMatch + '%', 256, 560);
+      ctx.fillStyle = 'rgba(255,255,249,0.5)';
+      ctx.font = '20px Arial';
+      ctx.fillText('Style Match Score', 256, 594);
+    }
+
+    // Stats bars (bottom section)
+    var stats = [
+      ['Trend Score', currentTrend],
+      ['Size Accuracy', currentSize],
+      ['Colour Harmony', currentColor]
+    ];
+    var barY = 640;
+    stats.forEach(function(s) {
+      ctx.fillStyle = 'rgba(255,255,249,0.7)';
+      ctx.font = '17px Arial'; ctx.textAlign = 'left';
+      ctx.fillText(s[0], 36, barY);
+
+      var val = scanPhase === 'complete' ? s[1] : 0;
+      var pct = val / 100;
+
+      ctx.fillStyle = scanPhase === 'complete' ? '#0d1a0d' : '#0d0d1a';
+      ctx.fillRect(36, barY+8, 440, 16);
+
+      if (scanPhase === 'complete') {
+        var g = ctx.createLinearGradient(36, 0, 36+440*pct, 0);
+        g.addColorStop(0, scanPhase === 'complete' ? '#cc0000' : '#333');
+        g.addColorStop(1, scanPhase === 'complete' ? '#ff5555' : '#555');
+        ctx.fillStyle = g;
+      } else {
+        ctx.fillStyle = '#1a1a1a';
+      }
+      ctx.fillRect(36, barY+8, 440*Math.max(pct, 0.005), 16);
+
+      ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'right';
+      ctx.fillText((scanPhase === 'complete' ? s[1] : 0) + '%', 476, barY);
+
+      barY += 90;
+    });
+
+    // SHEIN
+    ctx.fillStyle = '#FF3131';
+    ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center';
+    ctx.fillText('SHEIN', 256, 990);
+  }
+
+  var scrTex = new THREE.CanvasTexture(aiCanvas);
+  scrTex.minFilter = THREE.LinearFilter;
+  scrTex.magFilter = THREE.LinearFilter;
+
+  createAIScreen(60, null);
+
+  // ── Phone 3D Model ──
+  var phoneGrp = new THREE.Group();
+  var phoneMat = new THREE.MeshStandardMaterial({ color:0x0d0d0d, roughness:0.15, metalness:0.9 });
+  phoneGrp.add(new THREE.Mesh(new THREE.BoxGeometry(1.9,3.8,0.13), phoneMat));
+
+  var bezel = new THREE.Mesh(new THREE.BoxGeometry(1.7,3.5,0.01),
+    new THREE.MeshStandardMaterial({ color:0x050505 }));
+  bezel.position.z = 0.065; phoneGrp.add(bezel);
+
+  var screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.62,3.35),
+    new THREE.MeshBasicMaterial({ map:scrTex }));
+  screenMesh.position.z = 0.072; phoneGrp.add(screenMesh);
+
+  var glowMesh = new THREE.Mesh(new THREE.BoxGeometry(1.72,3.45,0.01),
+    new THREE.MeshBasicMaterial({ color:0xff3131, transparent:true, opacity:0.0 }));
+  glowMesh.position.z = 0.063; phoneGrp.add(glowMesh);
+
+  var notch = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.02,12),
+    new THREE.MeshStandardMaterial({ color:0x080808 }));
+  notch.rotation.x = Math.PI/2; notch.position.set(0,1.92,0.075);
+  phoneGrp.add(notch);
+
+  // Torus rings around phone
+  [1.2, 1.85, 2.5].forEach(function(r, i) {
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(r,0.012,6,60),
+      new THREE.MeshBasicMaterial({ color:0xff3131, transparent:true, opacity:0.1-i*0.025 }));
+    ring.rotation.x = Math.PI/2 + i*0.3;
+    ring.userData.rotSpeed = 0.004 - i*0.001;
+    phoneGrp.add(ring);
+  });
+
+  phoneGrp.position.set(0.3, 0.2, 0);
+  scene.add(phoneGrp);
+
+  // ── Feature cards ──
+  var features = ['Style Match','Size Guide','Trend Alert','Colour AI','Wardrobe Sync'];
+  var cards = [], lines = [];
+
+  features.forEach(function(label, i) {
+    var cv2 = document.createElement('canvas');
+    cv2.width = 320; cv2.height = 96;
+    var c2 = cv2.getContext('2d');
+    c2.fillStyle = 'rgba(10,0,5,0.9)';
+    c2.fillRect(0,0,320,96);
+    c2.strokeStyle = '#FF3131'; c2.lineWidth = 2;
+    c2.strokeRect(3,3,314,90);
+    c2.fillStyle = '#FF3131';
+    c2.fillRect(3,3,20,4); c2.fillRect(3,3,4,20);
+    c2.fillStyle = '#FFFFF9'; c2.font = 'bold 26px Arial'; c2.textAlign = 'center';
+    c2.fillText(label, 160, 58);
+
+    var tex2 = new THREE.CanvasTexture(cv2);
+    var card = new THREE.Mesh(new THREE.PlaneGeometry(1.6,0.48),
+      new THREE.MeshBasicMaterial({ map:tex2, transparent:true, opacity:0.85, side:THREE.DoubleSide }));
+    card.userData.angle = (i/features.length)*Math.PI*2;
+    card.userData.speed = 0.004 + i*0.0007;
+    card.userData.radius = 3.2 + (i%2)*0.4;
+    card.userData.yOff = (i-2)*0.7;
+    scene.add(card); cards.push(card);
+
+    var lGeo = new THREE.BufferGeometry();
+    lGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6),3));
+    var line = new THREE.Line(lGeo, new THREE.LineBasicMaterial({color:0xff3131,transparent:true,opacity:0.2}));
+    scene.add(line); lines.push(line);
+  });
+
+  // ── Particles ──
+  var pCount = 500, pGeo = new THREE.BufferGeometry();
+  var pPos = new Float32Array(pCount*3);
+  for (var i=0; i<pCount; i++) {
+    pPos[i*3]=(Math.random()-.5)*20; pPos[i*3+1]=(Math.random()-.5)*14; pPos[i*3+2]=(Math.random()-.5)*8-3;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos,3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({color:0xff3131,size:0.03,transparent:true,opacity:0.35})));
+
+  // ── Outfit items to detect ──
+  var outfitItems = [
+    {label:'Floral Dress', x:120, y:120, w:160, h:180},
+    {label:'Denim Jacket', x:220, y:90, w:160, h:130},
+    {label:'Belt', x:160, y:280, w:140, h:40},
+    {label:'Ankle Boots', x:130, y:320, w:120, h:60},
+  ];
+
+  // ── Animation States ──
+  var clock = new THREE.Clock();
+  var currentMatch = 0, currentTrend = 0, currentSize = 0, currentColor = 0;
+  var targetMatch = 94, targetTrend = 92, targetSize = 88, targetColor = 95;
+  var scanY = 60;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    var dt = clock.getDelta();
+    var t = clock.getElapsedTime();
+
+    // Update screen texture
+    createAIScreen(Math.round(scanY), scanPhase === 'scanning' ? outfitItems :
+                   scanPhase === 'complete' ? outfitItems : null);
+    scrTex.needsUpdate = true;
+
+    // Scan animation
+    if (scanPhase === 'scanning') {
+      scanY += 320 * dt;
+      if (scanY > 430) {
+        scanPhase = 'complete';
+        scanY = 60;
+        // Animate stats
+        animateStat('stat-match', targetMatch);
+        animateStat('stat-trend', targetTrend);
+        animateStat('stat-size', targetSize);
+        animateStat('stat-color', targetColor);
+        // Show recommendation cards
+        animateRecCards();
+      }
+    }
+
+    // Phone animation
+    phoneGrp.rotation.y = Math.sin(t*0.35)*0.15;
+    phoneGrp.rotation.x = Math.sin(t*0.25)*0.05;
+    phoneGrp.position.y = 0.2 + Math.sin(t*0.5)*0.1;
+
+    // Glow
+    glowMesh.material.opacity = 0.025 + Math.sin(t*2.1)*0.02;
+    redPt.intensity = scanPhase === 'scanning' ? 6+Math.sin(t*4)*1.5 : 3.5+Math.sin(t*1.6)*0.9;
+
+    // Torus rings
+    phoneGrp.children.forEach(function(ch){
+      if (ch.userData.rotSpeed && ch.geometry && ch.geometry.parameters &&
+          ch.geometry.parameters.tube !== undefined) {
+        ch.rotation.z += ch.userData.rotSpeed;
+      }
+    });
+
+    // Feature cards
+    cards.forEach(function(card, i){
+      card.userData.angle += card.userData.speed;
+      var a=card.userData.angle, r=card.userData.radius;
+      card.position.x = Math.cos(a)*r;
+      card.position.y = card.userData.yOff + Math.sin(a*0.6)*0.4;
+      card.position.z = Math.sin(a)*r*0.5;
+      card.lookAt(camera.position);
+      card.material.opacity = 0.6+Math.sin(t*1.2+i*1.1)*0.25;
+      var pa = lines[i].geometry.attributes.position.array;
+      pa[0]=phoneGrp.position.x; pa[1]=phoneGrp.position.y; pa[2]=phoneGrp.position.z;
+      pa[3]=card.position.x; pa[4]=card.position.y; pa[5]=card.position.z;
+      lines[i].geometry.attributes.position.needsUpdate = true;
+    });
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', function(){
+    var w=canvas.clientWidth, h=canvas.clientHeight;
+    camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+  });
+
+  // ── Stat counter animation ──
+  function animateStat(elId, target) {
+    var el = document.getElementById(elId);
+    el.classList.add('active');
+    var current = 0;
+    var step = Math.ceil(target / 40);
+    var iv = setInterval(function(){
+      current += step;
+      if (current >= target) { current = target; clearInterval(iv); }
+      el.textContent = current + '%';
+    }, 30);
+  }
+
+  // ── Show recommendation cards ──
+  function animateRecCards() {
+    var cards = document.querySelectorAll('.rec-card');
+    cards.forEach(function(card, i){
+      setTimeout(function(){ card.classList.add('show'); }, 200*i + 300);
+    });
+  }
+
+  // ── Snap button ──
+  var snapBtn = document.getElementById('snap-btn');
+  var hint = document.getElementById('phase-hint');
+
+  snapBtn.addEventListener('click', function(){
+    if (scanPhase !== 'idle') {
+      // Reset
+      scanPhase = 'idle';
+      scanY = 60;
+      currentMatch = 0; currentTrend = 0; currentSize = 0; currentColor = 0;
+      document.getElementById('stat-match').textContent = '--%';
+      document.getElementById('stat-match').classList.remove('active');
+      document.getElementById('stat-trend').textContent = '--';
+      document.getElementById('stat-trend').classList.remove('active');
+      document.getElementById('stat-size').textContent = '--';
+      document.getElementById('stat-size').classList.remove('active');
+      document.getElementById('stat-color').textContent = '--';
+      document.getElementById('stat-color').classList.remove('active');
+      document.querySelectorAll('.rec-card').forEach(function(c){ c.classList.remove('show'); });
+      snapBtn.textContent = 'Snap Photo';
+      hint.textContent = 'Point your camera at any outfit';
+      return;
+    }
+    scanPhase = 'scanning';
+    snapBtn.textContent = 'Restart';
+    hint.textContent = 'Analyzing outfit composition...';
+  });
+
+})();
+
+// ═══════════════════════════════════════════════════════
+// BACKGROUND PARTICLES
+// ═══════════════════════════════════════════════════════
+(function(){
+  var cv=document.getElementById('bg-canvas');
+  var r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:false});
+  r.setPixelRatio(1);r.setSize(window.innerWidth,window.innerHeight);
+  var s=new THREE.Scene();
+  var cam=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+  cam.position.z=5;
+  var N=600,g=new THREE.BufferGeometry();
+  var p=new Float32Array(N*3),c=new Float32Array(N*3);
+  for(var i=0;i<N;i++){
+    p[i*3]=(Math.random()-.5)*20;p[i*3+1]=(Math.random()-.5)*20;p[i*3+2]=(Math.random()-.5)*10;
+    var rd=Math.random()<.15;
+    c[i*3]=rd?1:.14;c[i*3+1]=rd?.07:.14;c[i*3+2]=rd?.07:.14;
+  }
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  g.setAttribute('color',new THREE.BufferAttribute(c,3));
+  s.add(new THREE.Points(g,new THREE.PointsMaterial({size:.04,vertexColors:true,transparent:true,opacity:.5})));
+  var mx=0,my=0;
+  document.addEventListener('mousemove',function(e){mx=(e.clientX/window.innerWidth-.5)*.6;my=(e.clientY/window.innerHeight-.5)*.6;});
+  var t=0;
+  (function loop(){requestAnimationFrame(loop);t+=.003;
+    var pts=s.children[0];pts.rotation.y=t*.06+mx*.2;pts.rotation.x=t*.03-my*.15;
+    r.render(s,cam);})();
+  window.addEventListener('resize',function(){
+    cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();
+    r.setSize(window.innerWidth,window.innerHeight);});
+})();
+</script>
+</body>
+</html>
