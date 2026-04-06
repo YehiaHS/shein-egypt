@@ -376,7 +376,7 @@ function drawRecImg(id,type){
   var dirL=new THREE.DirectionalLight(0xffffff,0.6);dirL.position.set(0,6,4);scene.add(dirL);
 
   // -- AI Screen Canvas --
-  var aiCanvas=document.createElement('canvas');aiCanvas.width=512;aiCanvas.height=1024;
+  var aiCanvas=document.createElement('canvas');aiCanvas.width=640;aiCanvas.height=1280;
   var scrTex=new THREE.CanvasTexture(aiCanvas);scrTex.minFilter=THREE.LinearFilter;scrTex.magFilter=THREE.LinearFilter;
 
   var scanPhase='idle',scanY=60,gridSweepX=0;
