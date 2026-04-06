@@ -556,6 +556,12 @@ function drawRecImg(id,type){
 
   phoneGrp.position.set(0.3,0.2,0);scene.add(phoneGrp);
 
+  // Reflective floor plane
+  var floorMat=new THREE.MeshStandardMaterial({color:0x080d18,roughness:0.35,metalness:0.6});
+  var floorMesh=new THREE.Mesh(new THREE.PlaneGeometry(15,20),floorMat);
+  floorMesh.rotation.x=-Math.PI/2;floorMesh.position.y=-2.2;
+  scene.add(floorMesh);
+
   // -- Beam geometry (connecting phone to cards) --
   function createBeam(color){
     var geo=new THREE.CylinderGeometry(0.004,0.004,1,6,1);
