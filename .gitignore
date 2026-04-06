@@ -1,0 +1,9 @@
+*.json
+*.py
+*.txt
+*.zip
+*.pptx
+*.pdf
+pptx_extracted/
+temp.zip
+__pycache__/
