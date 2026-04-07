@@ -9,53 +9,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
-// Async-load image data file via a single script element — no duplicates
-(function(){
-var loaded={},pending=[],imagesReady=false;
-var s=document.createElement('script');
-s.src='images-data.js';
-s.onload=function(){imagesReady=true;pending.forEach(function(el){tryApply(el);});pending=[];};
-s.onerror=function(){setTimeout(function(){document.head.appendChild(s);},2000);};
-document.head.appendChild(s);
-
-function tryApply(el){
-  var idx=el.getAttribute('data-img-idx');
-  var srcIdx=el.getAttribute('data-img-src');
-  var target=idx||srcIdx;
-  if(target==null||loaded[target])return true;
-  loaded[target]=true;
-  if(!window.SHEIN_IMAGES)return false;
-  var d=window.SHEIN_IMAGES[parseInt(target)];
-  if(!d)return true;
-  el.src=d;
-  return true;
-}
-function loadSlideImages(slide){
-  if(!slide)return;
-  slide.querySelectorAll('[data-img-idx],[data-img-src]').forEach(function(el){
-    if(!tryApply(el))pending.push(el);
-  });
-}
-window._lazyLoad=function(idx){
-  var slides=document.querySelectorAll('.slide');
-  if(slides[idx])loadSlideImages(slides[idx]);
-  if(slides[idx-1])loadSlideImages(slides[idx-1]);
-  if(slides[idx+1])loadSlideImages(slides[idx+1]);
-};
+window._lazyLoad=function(idx){}; // native loading
 setTimeout(function(){
   var ldr=document.getElementById('page-loader');
   if(ldr)ldr.classList.add('hidden');
-  var first=document.querySelector('.slide.active');
-  if(first)loadSlideImages(first);
-},500);
-
-// Optimize resize with debounce
+}, 500);
 var _resizeTimeout;
 window.addEventListener('resize', function(){
   clearTimeout(_resizeTimeout);
   _resizeTimeout = setTimeout(function(){ window.dispatchEvent(new Event('_optimizedResize')); }, 150);
 });
-})();
 </script>
 <style>
 
@@ -616,7 +579,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 </div>
 <canvas id="bg-canvas"></canvas>
 <div id="progress-bar" style="width:5.26%"></div>
-<div id="slide-counter"><span class="current-num">01</span><span style="color:rgba(255,255,249,.3)"> / 19</span></div>
+<div id="slide-counter"><span class="current-num">01</span><span style="color:rgba(255,255,249,.3)"> / 21</span></div>
 <div id="grain"></div>
 
 <!-- Lightbox -->
@@ -625,142 +588,628 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <img id="lb-img" src="" alt="Campaign Reference">
 </div>
 
-<div id="nav-dots"><div class="dot active" data-slide="0"></div><div class="dot" data-slide="1"></div><div class="dot" data-slide="2"></div><div class="dot" data-slide="3"></div><div class="dot" data-slide="4"></div><div class="dot" data-slide="5"></div><div class="dot" data-slide="6"></div><div class="dot" data-slide="7"></div><div class="dot" data-slide="8"></div><div class="dot" data-slide="9"></div><div class="dot" data-slide="10"></div><div class="dot" data-slide="11"></div><div class="dot" data-slide="12"></div><div class="dot" data-slide="13"></div><div class="dot" data-slide="14"></div><div class="dot" data-slide="15"></div><div class="dot" data-slide="16"></div><div class="dot" data-slide="17"></div><div class="dot" data-slide="18"></div></div>
-
-<button class="arrow-btn" id="btn-prev" aria-label="Previous">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-</button>
-<button class="arrow-btn" id="btn-next" aria-label="Next">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
-</button>
-
-<div id="kbd-hint">
-  <span class="kbadge">&#8592;</span><span class="kbadge">&#8594;</span>
-  &nbsp;navigate
+<div id="nav-dots">
+<div class="dot active" data-slide="0"></div>
+<div class="dot" data-slide="1"></div>
+<div class="dot" data-slide="2"></div>
+<div class="dot" data-slide="3"></div>
+<div class="dot" data-slide="4"></div>
+<div class="dot" data-slide="5"></div>
+<div class="dot" data-slide="6"></div>
+<div class="dot" data-slide="7"></div>
+<div class="dot" data-slide="8"></div>
+<div class="dot" data-slide="9"></div>
+<div class="dot" data-slide="10"></div>
+<div class="dot" data-slide="11"></div>
+<div class="dot" data-slide="12"></div>
+<div class="dot" data-slide="13"></div>
+<div class="dot" data-slide="14"></div>
+<div class="dot" data-slide="15"></div>
+<div class="dot" data-slide="16"></div>
+<div class="dot" data-slide="17"></div>
+<div class="dot" data-slide="18"></div>
+<div class="dot" data-slide="19"></div>
+<div class="dot" data-slide="20"></div>
 </div>
 
+
+<div id="slides-wrap">
 <div id="slides-wrap">
 
 <div class="slide active" data-index="0" id="slide-0">
   <div style="position:absolute;inset:0;background:var(--black)"></div>
-  <img class="s1-photo" src="" data-img-idx="0" alt="SHEIN Cover">
+  <img class="s1-photo" src="assets/image3.png" loading="lazy" alt="SHEIN Cover">
   <div class="s1-overlay"></div>
-
   <div class="s1-content">
-    <div class="s1-eyebrow reveal d1">Fashion Collection</div>
+    <div class="s1-eyebrow reveal d1">International Marketing</div>
     <div class="s1-title reveal d2"><span class="letter">S</span><span class="letter">H</span><span class="letter red-char">E</span><span class="letter">I</span><span class="letter">N</span></div>
-    <div class="s1-year reveal d3">2 0 2 6</div>
+    <div class="s1-year reveal d3">Egypt Market Entry</div>
     <div class="red-line s1-divider"></div>
     <div class="s1-sub reveal d4">Presented by</div>
     <div class="s1-names reveal d5">
-      Janah Ahmed &nbsp;&middot;&nbsp; 229200<br>
-      Farah Nagy &nbsp;&middot;&nbsp; 229864<br>
-      Yehia Salem &nbsp;&middot;&nbsp; 229916
+      Yehia &nbsp;&middot;&nbsp; Janah &nbsp;&middot;&nbsp; Farah
     </div>
   </div>
   <div class="s1-store reveal d6">Egypt</div>
 </div>
 <div class="slide" data-index="1" id="slide-1">
+
   <div class="inner-slide">
     <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
     <div class="content-area">
       <div class="content-left">
-        <div class="cursive-tag reveal d1">Market Context</div>
-        <div class="slide-heading reveal d2">Culture<br>of Egypt</div>
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">1. Cultural Analysis</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
         <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Mother Language</span>Arabic</li>
-          <li class="reveal d4"><span class="bullet-label">Second Language</span>English</li>
-          <li class="reveal d5"><span class="bullet-label">Customs</span>Modest wear</li>
-          <li class="reveal d6"><span class="bullet-label">Traditions</span>Cherishing celebrations &amp; occasions</li>
+          <li class="reveal d3"><span class="bullet-label">Official Language</span>Arabic, with a mix of Egyptian Arabic and English in daily life and business contexts.</li>
+          <li class="reveal d4"><span class="bullet-label">Customs</span>Modest wear aligns with cultural values, but there's a huge gap for trendy modest fashion.</li>
+          <li class="reveal d5"><span class="bullet-label">Traditions</span>Holidays (Ramadan, Eid) and celebrations drive high demand in the fashion sector.</li>
         </ul>
+        <p class="reveal d6" style="margin-top:15px;font-size:13px;line-height:1.6;color:rgba(255,255,249,.7)">The Egyptian culture is known for its rich history, powerful religious influence, and tightly knit social communities.</p>
+        </div>
       </div>
-      <div class="content-right">
-        <img class="side-img reveal-scale d2" src="" data-img-idx="1" alt="Egypt">
-        <div class="side-overlay"></div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image4.png" loading="lazy" alt="1. Cultural<br>Analysis">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
       </div>
     </div>
   </div>
 </div>
 <div class="slide" data-index="2" id="slide-2">
+
   <div class="inner-slide">
     <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
     <div class="content-area">
       <div class="content-left">
-        <div class="cursive-tag reveal d1">Insights</div>
-        <div class="slide-heading reveal d2">Consumer<br>Behaviour</div>
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">Consumer Behavior</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
         <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Social Influence</span>Peers, trends &amp; influencers on social media</li>
-          <li class="reveal d4"><span class="bullet-label">Price-Conscious</span>Addicted to discounts &amp; promotions</li>
-          <li class="reveal d5"><span class="bullet-label">Online Uncertainty</span>Browse online, prefer to purchase in-store</li>
+          <li class="reveal d3"><span class="bullet-label">Social Influence</span>Peer, family, and influencer recommendations dictate purchasing decisions among young consumers.</li>
+          <li class="reveal d4"><span class="bullet-label">Value Consciousness</span>High price-sensitivity; responsive to promotions, discounts, and loyalty programmes.</li>
+          <li class="reveal d5"><span class="bullet-label">Online vs In-Store</span>Online browsing is massive, but consumers prefer visiting physical stores to verify quality and fit before purchasing.</li>
         </ul>
-      </div>
-      <div class="content-right">
-        <div class="img-grid-2">
-          <img src="" data-img-idx="2" alt="Consumer 1">
-          <img src="" data-img-idx="3" alt="Consumer 2">
         </div>
+      </div>
+      <div class="content-right" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;">
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image5.png" loading="lazy" alt="Image 0"><img src="assets/image6.png" loading="lazy" alt="Image 1"><img src="assets/image7.png" loading="lazy" alt="Image 2"></div>
         <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
       </div>
     </div>
   </div>
 </div>
 <div class="slide" data-index="3" id="slide-3">
+
   <div class="inner-slide">
     <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
     <div class="content-area">
       <div class="content-left">
-        <div class="cursive-tag reveal d1">Market Analysis</div>
-        <div class="slide-heading reveal d2">Business<br>Etiquette</div>
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">Business Etiquette</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
         <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">High Power Distance</span>Professional image and formal communication matter.</li>
-          <li class="reveal d4"><span class="bullet-label">Collectivist Culture</span>Influencer engagement is key to building trust.</li>
-          <li class="reveal d5"><span class="bullet-label">High Uncertainty Avoidance</span>Clear pricing and policies increase confidence.</li>
+          <li class="reveal d3"><span class="bullet-label">High Power Distance</span>Formal titles and hierarchy represent professionalism and respect.</li>
+          <li class="reveal d4"><span class="bullet-label">Collectivist Culture</span>Personal relationships and face-to-face networking drive business trust.</li>
+          <li class="reveal d5"><span class="bullet-label">Uncertainty Avoidance</span>Structure is valued, but flexibility is expected with local partners.</li>
+          <li class="reveal d6"><span class="bullet-label">Reputation</span>Influencer collaborations validate credibility and public acceptance.</li>
         </ul>
+        </div>
       </div>
-      <div class="comp-right">
-        <div class="comp-main reveal-scale d2">
-          <img src="" data-img-idx="4" alt="Competitive Landscape">
-          <div class="side-overlay"></div>
-        </div>
-        <div class="comp-logos">
-          <img class="reveal-scale d4" src="" data-img-idx="5" alt="Competitor Logo 1">
-          <img class="reveal-scale d5" src="" data-img-idx="6" alt="Competitor Logo 2">
-        </div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image8.jpeg" loading="lazy" alt="Business Etiquette">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
       </div>
     </div>
   </div>
 </div>
-
 <div class="slide" data-index="4" id="slide-4">
-  <div class="promo-slide">
-    <canvas class="bb-canvas" id="bb-bus"></canvas>
-    <div class="ref-thumb reveal d1" data-img="" data-img-src="7" title="Click to expand">
-      <div class="ref-thumb-label">Moving Bus Campaign</div>
-      <img src="" data-img-idx="8" alt="Moving Bus Campaign">
-      <div class="ref-thumb-expand">&#x26F6;</div>
-    </div>
-    <div class="promo-ui">
-      <div class="promo-tag reveal d2">Campaign 01 &nbsp;&middot;&nbsp; Promotional Marketing 2026</div>
-      <div class="promo-heading reveal d3">Moving <em>Bus</em></div>
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">2.1 Economic Environment</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">GDP Growth</span>Projected 4.1% growth signals recovery and urban consumer confidence.</li>
+          <li class="reveal d4"><span class="bullet-label">Inflation & Exchange Rate</span>28.1% urban inflation (May 2024), pushing massive demand for affordable fashion. Fast currency depreciation hikes import costs.</li>
+          <li class="reveal d5"><span class="bullet-label">Consumer Reality</span>High prices demand SHEIN's affordable models as an economic necessity for trend-seekers.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image12.png" loading="lazy" alt="Image 0"><img src="assets/image13.svg" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
     </div>
   </div>
 </div>
 <div class="slide" data-index="5" id="slide-5">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">2.2 Market Potential</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Market Size</span>Total fashion market projecting $3.9 billion in 2025.</li>
+          <li class="reveal d4"><span class="bullet-label">E-Commerce Growth</span>Online sales hit $265M (15-20% YoY growth), fueled by deep social media penetration.</li>
+          <li class="reveal d5"><span class="bullet-label">Informal Resellers</span>Current demand is met by local dropshippers adding 20-40% markups. Direct entry guarantees immediate market capture.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image14.png" loading="lazy" alt="Image 0"><img src="assets/image15.png" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="6" id="slide-6">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">2.3 Trade & Investment</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Customs & Tariffs</span>20-40% import duties require strategic local alliances or free-zone logistics.</li>
+          <li class="reveal d4"><span class="bullet-label">Payments</span>Cash on Delivery dominates (>60%). Local integrations (Fawry, Vodafone Cash) are mandatory.</li>
+          <li class="reveal d5"><span class="bullet-label">Regulations</span>Strict e-commerce transparency and consumer protection laws to comply with.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image17.png" loading="lazy" alt="Image 0"><img src="assets/image18.png" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="7" id="slide-7">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">3.1 Competitive Landscape</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">International Rivals</span>Centrepoint provides variety, but lacks affordability and unique fashion cycles.</li>
+          <li class="reveal d4"><span class="bullet-label">Local Concept Stores</span>Go Native and Locally showcase domestic designers but tend toward repetitive, basic, or un-modest styles.</li>
+          <li class="reveal d5"><span class="bullet-label">The Shein Advantage</span>Affordability + On-Trend + Variety = Dominance in the youth segment.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image20.png" loading="lazy" alt="Image 0"><img src="assets/image21.png" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="8" id="slide-8">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">3.2 Target Audience</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Demographics</span>16–30 years old. Urban-centric. Primarily female, middle-income scale.</li>
+          <li class="reveal d4"><span class="bullet-label">Trend-Driven Identity</span>Fashion is identity expression validated via TikTok and Instagram.</li>
+          <li class="reveal d5"><span class="bullet-label">Cultural Duality</span>Seeks global styles combined seamlessly with modest appropriateness for traditions.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image22.png" loading="lazy" alt="3.2 Target<br>Audience">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="9" id="slide-9">
+
+  <div class="inner-slide" style="overflow-y:auto;">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area" style="padding: 40px 60px; display: block;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <h2 class="slide-heading reveal d2" style="margin-bottom: 10px;">3.3 SWOT Analysis</h2>
+        <div class="red-line reveal d3" style="width: 120px; margin: 0 auto;"></div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="reveal d3" style="background: rgba(40,255,40,0.05); border: 1px solid rgba(40,255,40,0.2); padding: 24px; border-radius: 12px; text-align: left;">
+          <h3 style="color: #4ade80; margin-bottom: 12px; font-weight: 900; letter-spacing: 1px;">STRENGTHS</h3>
+          <ul class="bullet-list" style="margin-top: 0;">
+            <li><span class="bullet-label">Pricing & Demand</span>Affordable pricing fit for a sensitive economy.</li>
+            <li><span class="bullet-label">Brand Awareness</span>Huge established customer base via resellers.</li>
+          </ul>
+        </div>
+        <div class="reveal d4" style="background: rgba(255,60,60,0.05); border: 1px solid rgba(255,60,60,0.2); padding: 24px; border-radius: 12px; text-align: left;">
+          <h3 style="color: #ff4d4d; margin-bottom: 12px; font-weight: 900; letter-spacing: 1px;">WEAKNESSES</h3>
+          <ul class="bullet-list" style="margin-top: 0;">
+            <li><span class="bullet-label">Logistics</span>Cross-border shipping friction & delays.</li>
+            <li><span class="bullet-label">Perception</span>Quality/sizing concerns reduce immediate trust.</li>
+          </ul>
+        </div>
+        <div class="reveal d5" style="background: rgba(60,150,255,0.05); border: 1px solid rgba(60,150,255,0.2); padding: 24px; border-radius: 12px; text-align: left;">
+          <h3 style="color: #60a5fa; margin-bottom: 12px; font-weight: 900; letter-spacing: 1px;">OPPORTUNITIES</h3>
+          <ul class="bullet-list" style="margin-top: 0;">
+            <li><span class="bullet-label">Formalizing Sales</span>Capture full margins by cutting out the middleman reseller.</li>
+            <li><span class="bullet-label">Localization</span>Adapt collections to modest fashion trends.</li>
+          </ul>
+        </div>
+        <div class="reveal d6" style="background: rgba(255,160,60,0.05); border: 1px solid rgba(255,160,60,0.2); padding: 24px; border-radius: 12px; text-align: left;">
+          <h3 style="color: #fb923c; margin-bottom: 12px; font-weight: 900; letter-spacing: 1px;">THREATS</h3>
+          <ul class="bullet-list" style="margin-top: 0;">
+            <li><span class="bullet-label">Economic & Legal</span>Inflation, devaluation, and customs/tax barriers.</li>
+            <li><span class="bullet-label">Competition</span>Established bricks-and-mortar legacy brands.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="10" id="slide-10">
+
+  <div class="inner-slide" style="overflow-y:auto;">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area" style="padding: 40px 60px; display: block;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <h2 class="slide-heading reveal d2" style="margin-bottom: 10px;">3.4 PESTLE Analysis</h2>
+        <div class="red-line reveal d3" style="width: 120px; margin: 0 auto;"></div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align:left;">
+        <div class="reveal d3" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">POLITICAL</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Stable FDI framework but complex bureaucracy and protectionist tendencies.</p>
+        </div>
+        <div class="reveal d4" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">ECONOMIC</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Inflation and FX limits exist, offset by huge informal demand for fast fashion.</p>
+        </div>
+        <div class="reveal d5" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">SOCIAL</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Massive young demographic (>60% under 30) blending global trends with modest norms.</p>
+        </div>
+        <div class="reveal d6" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">TECHNOLOGICAL</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Smartphone penetration booming; algorithm-driven social commerce aligns with SHEIN tech.</p>
+        </div>
+        <div class="reveal d7" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">LEGAL</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Stringent consumer protection on pricing accuracy, refund transparency, and IP claims.</p>
+        </div>
+        <div class="reveal d8" style="background: rgba(255,49,49,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 8px;">
+          <h4 style="color: var(--red); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;">ENVIRONMENT</h4>
+          <p style="font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 10px;">Sustainability is a secondary concern locally, but can be framed via "israf" (avoiding waste).</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="11" id="slide-11">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">4.1 Entry Strategy</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Phase 1 (Months 1–6)</span>Localize digital platform fully. App in Arabic, EGP pricing, COD integration, fast 5-7 day third-party logistics delivery.</li>
+          <li class="reveal d4"><span class="bullet-label">Phase 2 (Months 7–18)</span>Open flagship brand-experience centers in Cairo (e.g. CFC) and Alexandria for in-store try-on.</li>
+          <li class="reveal d5"><span class="bullet-label">Phase 3 (Year 2+)</span>Secondary city expansion and formalize existing resellers into affiliate partners.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image29.png" loading="lazy" alt="4.1 Entry<br>Strategy">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="12" id="slide-12">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">4.2 Product Strategy</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Modest Focus</span>Address the glaring gap for stylish, affordable modest wear against generic market basics.</li>
+          <li class="reveal d4"><span class="bullet-label">Seasonal Localization</span>Dedicated summer collections for the North Coast lifestyle peaks.</li>
+          <li class="reveal d5"><span class="bullet-label">Culturally Relevant</span>Capsules specifically dropping for Ramadan and Eid seasons. Include inclusive size mapping.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image30.png" loading="lazy" alt="4.2 Product<br>Strategy">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="13" id="slide-13">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">4.3 Pricing Strategy</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Value Leadership</span>Aggressive floors (<200 EGP for basics). Absorb exchange risks to build market share.</li>
+          <li class="reveal d4"><span class="bullet-label">Psychological Adjustments</span>Charm pricing (EGP 199, 249) and anchor pricing (crossed-out originals) to highlight savings.</li>
+          <li class="reveal d5"><span class="bullet-label">Agile Promotions</span>30-50% off during Ramadan peaks, Flash Sales to push app opens, and first-order heavy discounts.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <img class="side-img reveal-scale d2" src="assets/image31.jpeg" loading="lazy" alt="4.3 Pricing<br>Strategy">
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="14" id="slide-14">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">4.4 Distribution Strategy</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Physical Bridging</span>Establish standalone stores in key urban centers to eliminate trust, delay, and sizing barriers.</li>
+          <li class="reveal d4"><span class="bullet-label">Digital Integration</span>Stores act as experience hubs linking seamlessly to the in-app 5-day delivery architecture.</li>
+          <li class="reveal d5"><span class="bullet-label">Location Priority</span>Target high-footfall iconic shopping centers initially.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="15" id="slide-15">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Janah & Farah</div>
+        <div class="slide-heading reveal d2">4.5 Promotional Events</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">SHEIN Mystery Box</span>Collaborate with top Egyptian fashion influencers for blind outfit unboxings and styling reactions.</li>
+          <li class="reveal d4"><span class="bullet-label">Shein After Dark</span>Exclusive night-time shopping festival featuring DJ, matcha bars, discounts, and influencer styling sessions.</li>
+          <li class="reveal d5"><span class="bullet-label">Digital Hype Generation</span>Leveraging organic TikTok/Instagram momentum and event hashtags.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image37.jpeg" loading="lazy" alt="Image 0"><img src="assets/image39.jpeg" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="16" id="slide-16">
+
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area">
+      <div class="content-left">
+        <div class="cursive-tag reveal d1">Yehia</div>
+        <div class="slide-heading reveal d2">Conclusion & Recommendations</div>
+        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
+        <div class="slide-body slide-content">
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">The Verdict</span>Egypt is a hyper-growth alignment for SHEIN with preexisting, powerful informal demand.</li>
+          <li class="reveal d4"><span class="bullet-label">Priorities</span>Localize heavily (EGP, Arabic, Modesty), formalize logistics, and bridge physical trust gaps rapidly.</li>
+          <li class="reveal d5"><span class="bullet-label">The Window</span>Act decisively before emerging local fast-fashion or rivals solidify market hold.</li>
+        </ul>
+        </div>
+      </div>
+      <div class="content-right" >
+        <div class="img-grid-2 reveal-scale d2"><img src="assets/image40.jpeg" loading="lazy" alt="Image 0"><img src="assets/image41.jpeg" loading="lazy" alt="Image 1"></div>
+        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="17" id="slide-17">
+
+  <div class="store-slide" style="position:relative;">
+    <div class="store-slide-label">Interactive Demo &mdash; SHEIN Egypt</div>
+    <!-- Desktop browser panel -->
+    <div class="browser-panel">
+      <div class="browser-chrome">
+        <div class="browser-dots"><span class="d-red"></span><span class="d-yel"></span><span class="d-grn"></span></div>
+        <div class="browser-url">egypt.shein.com</div>
+      </div>
+      <div class="shein-site">
+        <div class="ss-header">
+          <div class="ss-logo">SHEIN</div>
+          <input type="text" class="ss-search" placeholder="Search dresses, tops, accessories...">
+          <button class="ss-cart-btn">CART <span class="ss-cart-count">2</span></button>
+        </div>
+        <div class="ss-cats">
+          <div class="ss-cat active">NEW IN</div><div class="ss-cat">WOMEN</div><div class="ss-cat">MODEST</div>
+          <div class="ss-cat">CURVE</div><div class="ss-cat">KIDS</div><div class="ss-cat">BEAUTY</div>
+        </div>
+        <div class="ss-hero">
+          <h2>EGYPT EXCLUSIVE LAUNCH</h2>
+          <p>Up to 70% OFF your first order</p>
+          <div class="ss-hero-badge">SHOP NOW</div>
+        </div>
+        <div class="ss-grid">
+          <div class="ss-product" onclick="openProdModal('Floral Summer Dress', 'EGP 349', 'assets/image34.jpeg')">
+            <img src="assets/image34.jpeg" loading="lazy" alt="Product">
+            <div class="ss-product-info">
+              <div class="ss-product-name">Floral Summer Modest Dress</div>
+              <span class="ss-product-price">EGP 349</span> <span class="ss-product-old">EGP 599</span>
+              <button class="ss-product-add">ADD DETAILS</button>
+            </div>
+          </div>
+          <div class="ss-product" onclick="openProdModal('Casual Modest Set', 'EGP 450', 'assets/image35.jpeg')">
+            <img src="assets/image35.jpeg" loading="lazy" alt="Product">
+            <div class="ss-product-info">
+              <div class="ss-product-name">2-Piece Casual Solid Set</div>
+              <span class="ss-product-price">EGP 450</span> <span class="ss-product-old">EGP 800</span>
+              <button class="ss-product-add">ADD DETAILS</button>
+            </div>
+          </div>
+          <div class="ss-product" onclick="openProdModal('Eid Collection Abaya', 'EGP 799', 'assets/image36.jpeg')">
+            <img src="assets/image36.jpeg" loading="lazy" alt="Product">
+            <div class="ss-product-info">
+              <div class="ss-product-name">Eid Collection Elegant Abaya</div>
+              <span class="ss-product-price">EGP 799</span> <span class="ss-product-old">EGP 1200</span>
+              <button class="ss-product-add">ADD DETAILS</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Phone panel -->
+    <div class="phone-panel">
+      <div class="phone-3d-wrap">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="app-header">
+              <div class="app-logo">SHEIN</div>
+              <div class="app-icon">&#128269;</div><div class="app-icon">&#128722;</div>
+            </div>
+            <div class="app-cats">
+              <div class="app-cat active">Modest</div><div class="app-cat">Trending</div><div class="app-cat">Sale</div>
+            </div>
+            <img src="assets/image37.jpeg" loading="lazy" style="width:100%;height:100px;object-fit:cover;border-bottom:3px solid #eee;">
+            <div class="app-grid">
+              <div class="app-product">
+                <img src="assets/image22.png" loading="lazy">
+                <div class="app-product-info">
+                  <div class="app-product-name">North Coast Fit</div>
+                  <div class="app-product-price">EGP 299</div>
+                  <button class="app-cart-btn">+</button>
+                </div>
+              </div>
+              <div class="app-product">
+                <img src="assets/image30.png" loading="lazy">
+                <div class="app-product-info">
+                  <div class="app-product-name">Elegant Scarf</div>
+                  <div class="app-product-price">EGP 129</div>
+                  <button class="app-cart-btn">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="slide" data-index="18" id="slide-18">
+
+  <div class="promo-slide">
+    <canvas class="bb-canvas" id="bb-bus"></canvas>
+    <div class="promo-ui">
+      <div class="promo-tag reveal d2">Promo Innovation &nbsp;&middot;&nbsp; 2026</div>
+      <div class="promo-heading reveal d3">Moving <em>Bus</em></div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-index="19" id="slide-19">
+
   <div class="promo-slide">
     <canvas class="bb-canvas" id="bb-ai"></canvas>
-    
     <div class="ai-overlay">
       <div class="ai-top-ui">
         <div class="ai-stats">
@@ -768,571 +1217,34 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
           <div class="ai-stat-card"><div class="ai-stat-label">Trend Score</div><div class="ai-stat-value" id="ai-trend">--%</div></div>
         </div>
       </div>
-
       <div class="ai-controls">
         <button id="ai-snap-btn">Snap &amp; Style</button>
         <div class="ai-hint" id="ai-hint">Point your camera at any outfit</div>
       </div>
     </div>
-
     <div class="ai-rec-wrap" id="ai-recs">
-      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-1"><div class="ai-rec-info"><div class="ai-rec-name">Floral Chiffon Dress</div><div class="ai-rec-price">449 EGP</div></div></div>
-      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-2"><div class="ai-rec-info"><div class="ai-rec-name">Ribbed Co-ord Set</div><div class="ai-rec-price">375 EGP</div></div></div>
-      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-3"><div class="ai-rec-info"><div class="ai-rec-name">Evening Abaya</div><div class="ai-rec-price">699 EGP</div></div></div>
-      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-4"><div class="ai-rec-info"><div class="ai-rec-name">Linen Shirt Dress</div><div class="ai-rec-price">299 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" loading="lazy" src="assets/image34.jpeg" id="rec-img-1"><div class="ai-rec-info"><div class="ai-rec-name">Floral Chiffon Dress</div><div class="ai-rec-price">449 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" loading="lazy" src="assets/image35.jpeg" id="rec-img-2"><div class="ai-rec-info"><div class="ai-rec-name">Ribbed Co-ord Set</div><div class="ai-rec-price">375 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" loading="lazy" src="assets/image36.jpeg" id="rec-img-3"><div class="ai-rec-info"><div class="ai-rec-name">Evening Abaya</div><div class="ai-rec-price">699 EGP</div></div></div>
     </div>
-
     <div class="ai-scan-lines" id="ai-scan-lines"></div>
     <div id="ai-flash"></div>
-
-    <div class="ref-thumb reveal d1" title="Click to expand">
-      <div class="ref-thumb-label">Source Photo</div>
-      <img src="assets/ai_scan_source_1775553484016.png" alt="AI Outfit Finder Source">
-      <div class="ref-thumb-expand">&#x26F6;</div>
-    </div>
     <div class="promo-ui">
-      <div class="promo-tag reveal d2">Campaign 02 &nbsp;&middot;&nbsp; Promotional Marketing 2026</div>
+      <div class="promo-tag reveal d2">Retail Installation &nbsp;&middot;&nbsp; District 5</div>
       <div class="promo-heading reveal d3">AI Outfit <em>Finder</em></div>
     </div>
   </div>
 </div>
-<div class="slide" data-index="6" id="slide-6">
+<div class="slide" data-index="20" id="slide-20">
+
   <div class="promo-slide">
     <canvas class="bb-canvas" id="bb-runway"></canvas>
-    <div class="ref-thumb reveal d1" data-img="" data-img-src="11" title="Click to expand">
-      <div class="ref-thumb-label">Pop-up Runway Show</div>
-      <img src="" data-img-idx="12" alt="Pop-up Runway Show">
-      <div class="ref-thumb-expand">&#x26F6;</div>
-    </div>
     <div class="promo-ui">
-      <div class="promo-tag reveal d2">Campaign 03 &nbsp;&middot;&nbsp; Promotional Marketing 2026</div>
-      <div class="promo-heading reveal d3">Pop-up <em>Runway Show</em></div>
+      <div class="promo-tag reveal d2">Flash Event &nbsp;&middot;&nbsp; 2026</div>
+      <div class="promo-heading reveal d3">Pop-Up <em>Runway</em></div>
     </div>
   </div>
 </div>
-
-<div class="slide" data-index="7" id="slide-7">
-  <div class="inner-slide">
-    <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
-    <div style="position:absolute;inset:0;top:56px;display:flex;">
-      <div class="content-left" style="flex:0 0 38%;padding:40px;">
-        <div class="cursive-tag reveal d1">Market Analysis</div>
-        <div class="slide-heading reveal d2">Competitive<br>Landscape</div>
-        <div class="red-line reveal d3" style="margin-bottom:20px"></div>
-        <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Centrepoint</span>Strong market presence with multiple branches across Egypt.</li>
-          <li class="reveal d4"><span class="bullet-label">Concept Stores</span>Familiar among Gen Z but with repetitive style and lower modest-wear alignment.</li>
-          <li class="reveal d5"><span class="bullet-label">Pricing Perception</span>Both key competitors are often considered overpriced.</li>
-        </ul>
-      </div>
-      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;">
-        <div class="piece-item reveal-scale d2"><img src="" data-img-idx="13" alt="Piece 1"><div class="piece-overlay"><span class="piece-label">Statement Dress</span></div></div>
-        <div class="piece-item reveal-scale d3"><img src="" data-img-idx="14" alt="Piece 2"><div class="piece-overlay"><span class="piece-label">Layered Look</span></div></div>
-        <div class="piece-item reveal-scale d4"><img src="" data-img-idx="15" alt="Piece 3"><div class="piece-overlay"><span class="piece-label">Evening Wear</span></div></div>
-        <div class="piece-item reveal-scale d5"><img src="" data-img-idx="16" alt="Piece 4"><div class="piece-overlay"><span class="piece-label">Casual Chic</span></div></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="slide" data-index="8" id="slide-8">
-  <div class="inner-slide">
-    <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
-    <div class="content-area">
-      <div class="content-left">
-        <div class="cursive-tag reveal d1">Strategy</div>
-        <div class="slide-heading reveal d2">SWOT<br>Analysis</div>
-        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-        <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Strengths</span>Affordable pricing, high awareness, and existing market demand.</li>
-          <li class="reveal d4"><span class="bullet-label">Weaknesses</span>Cross-border shipping friction, quality/sizing concerns, and store operating costs.</li>
-          <li class="reveal d5"><span class="bullet-label">Opportunities</span>Convert demand into direct sales and remove reseller markups through localization.</li>
-          <li class="reveal d6"><span class="bullet-label">Threats</span>Economic instability, local competition, and import-policy changes.</li>
-        </ul>
-      </div>
-      <div class="content-right">
-        <img class="side-img reveal-scale d2" src="" data-img-idx="17" alt="Launch">
-        <div class="side-overlay"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="slide" data-index="9" id="slide-9">
-  <div class="inner-slide">
-    <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
-    <div class="content-area">
-      <div class="content-left">
-        <div class="cursive-tag reveal d1">Strategy</div>
-        <div class="slide-heading reveal d2">Product<br>Strategy</div>
-        <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-        <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Modest-Wear Expansion</span>Fill the market gap with culturally aligned silhouettes.</li>
-          <li class="reveal d4"><span class="bullet-label">Seasonal Localization</span>Launch dedicated summer lines for Egypt's North Coast season.</li>
-          <li class="reveal d5"><span class="bullet-label">Value Positioning</span>Keep affordable pricing and promotions for price-sensitive shoppers.</li>
-          <li class="reveal d6"><span class="bullet-label">Fit &amp; Occasion Focus</span>Local sizing standards and occasion capsules (Ramadan, Eid, celebrations).</li>
-        </ul>
-      </div>
-      <div class="content-right">
-        <div class="img-grid-2">
-          <img src="" data-img-idx="18" alt="Sust 1">
-          <img src="" data-img-idx="19" alt="Sust 2">
-        </div>
-        <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="slide" data-index="10" id="slide-10">
-  <div class="inner-slide">
-    <nav class="nav-strip">
-          <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">2026</span>
-        </nav>
-    <div style="position:absolute;inset:0;top:56px;display:flex;">
-      <div class="content-left" style="flex:0 0 45%;min-width:300px;">
-        <div class="cursive-tag reveal d1">Strategy</div>
-        <div class="slide-heading reveal d2">Distribution<br>Strategy</div>
-        <div class="red-line reveal d3" style="margin-bottom:24px"></div>
-        <p class="slide-body reveal d4">Open standalone SHEIN stores in Cairo and Alexandria, prioritise high-traffic malls, and combine in-store try-on with digital convenience for a seamless omnichannel journey.</p>
-      </div>
-      <div class="lookbook-wrap">
-        <div class="lookbook-item reveal-scale d2"><img src="" data-img-idx="20" alt="Look 1"></div>
-        <div class="lookbook-item reveal-scale d3"><img src="" data-img-idx="21" alt="Look 2"></div>
-        <div class="lookbook-item reveal-scale d4" style="grid-column:1/-1"><img src="" data-img-idx="22" alt="Look 3"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="slide" data-index="11" id="slide-11">
-  <div class="contact-slide">
-    <div class="contact-left">
-      <img src="" data-img-idx="23" alt="Contact">
-      <div class="contact-left-ov"></div>
-    </div>
-    <div class="contact-right">
-      <div class="cursive-tag reveal d1">Promotional Marketing</div>
-      <div class="contact-heading reveal d2">Launch<br><em>Event</em></div>
-      <div class="red-line reveal d3" style="margin-bottom:0"></div>
-      <ul class="contact-items">
-        <li class="reveal d3">Nourhan Emad</li>
-        <li class="reveal d4">Kenzy Mamdouh</li>
-        <li class="reveal d5">Rawan Atef</li>
-        <li class="reveal d6">Sara Sabry</li>
-      </ul>
-    </div>
-  </div>
-</div>
-
-<div class="slide" data-index="12" id="slide-12">
-  <div class="store-slide" style="position:relative;">
-    <div class="store-slide-label">Interactive Demo &mdash; SHEIN Egypt</div>
-
-    <!-- ═══ Desktop Browser ═══ -->
-    <div class="browser-panel">
-      <div class="browser-chrome">
-        <div class="browser-dots">
-          <span class="d-red"></span><span class="d-yel"></span><span class="d-grn"></span>
-        </div>
-        <div class="browser-url">🔒 &nbsp;shein.com/egypt</div>
-      </div>
-      <div class="shein-site" id="shein-site">
-        <div class="ss-header">
-          <div class="ss-logo">SHEIN</div>
-          <input class="ss-search" id="ss-search" placeholder="Search SHEIN Egypt..." oninput="filterProducts()">
-          <button class="ss-cart-btn" onclick="toggleCart()">
-            🛒 Cart <span class="ss-cart-count" id="cart-count">0</span>
-          </button>
-        </div>
-        <div class="ss-cats">
-          <div class="ss-cat active" onclick="filterCat(this,'all')">All</div>
-          <div class="ss-cat" onclick="filterCat(this,'new')">New In</div>
-          <div class="ss-cat" onclick="filterCat(this,'women')">Women</div>
-          <div class="ss-cat" onclick="filterCat(this,'sale')">Sale 🔥</div>
-        </div>
-        <div class="ss-hero">
-          <h2>SHEIN Egypt — Autumn 2026</h2>
-          <p>Free delivery on orders over 500 EGP &nbsp;·&nbsp; Easy returns</p>
-          <div class="ss-hero-badge">UP TO 50% OFF</div>
-        </div>
-        <div class="ss-grid" id="ss-grid">
-          <div class="ss-product" data-cat="women" onclick="openProduct(0)">
-          <img src="" data-img-idx="24" alt="Floral Chiffon Maxi Dress" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Floral Chiffon Maxi Dress</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">899 EGP</span>449 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(0)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="women" onclick="openProduct(1)">
-          <img src="" data-img-idx="25" alt="Ribbed High-Waist Co-ord Set" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Ribbed High-Waist Co-ord Set</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">750 EGP</span>375 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(1)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="women" onclick="openProduct(2)">
-          <img src="" data-img-idx="26" alt="Embroidered Evening Abaya" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Embroidered Evening Abaya</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">1299 EGP</span>699 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(2)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="women" onclick="openProduct(3)">
-          <img src="" data-img-idx="27" alt="Casual Linen Shirt Dress" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Casual Linen Shirt Dress</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">599 EGP</span>299 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(3)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="new" onclick="openProduct(4)">
-          <img src="" data-img-idx="28" alt="Boho Printed Wide-Leg Pants" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Boho Printed Wide-Leg Pants</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">649 EGP</span>349 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(4)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="sale" onclick="openProduct(5)">
-          <img src="" data-img-idx="29" alt="Satin Slip Midi Skirt" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Satin Slip Midi Skirt</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">549 EGP</span>279 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(5)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="new" onclick="openProduct(6)">
-          <img src="" data-img-idx="30" alt="Oversized Blazer Coord" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Oversized Blazer Coord</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">999 EGP</span>549 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(6)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="sale" onclick="openProduct(7)">
-          <img src="" data-img-idx="31" alt="Classic White Linen Jumpsuit" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Classic White Linen Jumpsuit</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">799 EGP</span>399 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(7)">ADD TO CART</button>
-        </div>
-<div class="ss-product" data-cat="new" onclick="openProduct(8)">
-          <img src="" data-img-idx="32" alt="Mesh Insert Bodycon Dress" loading="lazy">
-          <div class="ss-product-info">
-            <div class="ss-product-name">Mesh Insert Bodycon Dress</div>
-            <div class="ss-product-price">
-              <span class="ss-product-old">449 EGP</span>229 EGP
-            </div>
-          </div>
-          <button class="ss-cart-btn" onclick="event.stopPropagation();addToCart(8)">ADD TO CART</button>
-        </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ 3D CSS Phone ═══ -->
-    <div class="phone-panel">
-      <div class="phone-3d-wrap">
-        <div class="phone-frame">
-          <div class="phone-notch"></div>
-          <div class="phone-screen" id="phone-screen">
-            <div class="app-header">
-              <div class="app-logo">SHEIN</div>
-              <span class="app-icon">🔍</span>
-              <span class="app-icon" onclick="toggleCart()" style="position:relative;">
-                🛒<span class="ss-cart-count" id="app-cart-count"
-                  style="position:absolute;top:-4px;right:-4px;font-size:8px;width:14px;height:14px;">0</span>
-              </span>
-            </div>
-            <div class="app-cats">
-              <div class="app-cat active" onclick="appCat(this,'all')">All</div>
-              <div class="app-cat" onclick="appCat(this,'new')">New In</div>
-              <div class="app-cat" onclick="appCat(this,'women')">Women</div>
-              <div class="app-cat" onclick="appCat(this,'sale')">Sale 🔥</div>
-            </div>
-            <div class="app-grid" id="app-grid">
-              <div class="app-product" data-cat="women" onclick="openProduct(0)">
-          <img src="" data-img-idx="33" alt="Floral Chiffon Maxi Dress" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Floral Chiffon Maxi Dress</div>
-            <div class="app-product-price">
-              <span class="app-product-old">899 EGP</span>449 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(0)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="women" onclick="openProduct(1)">
-          <img src="" data-img-idx="34" alt="Ribbed High-Waist Co-ord Set" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Ribbed High-Waist Co-ord Set</div>
-            <div class="app-product-price">
-              <span class="app-product-old">750 EGP</span>375 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(1)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="women" onclick="openProduct(2)">
-          <img src="" data-img-idx="35" alt="Embroidered Evening Abaya" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Embroidered Evening Abaya</div>
-            <div class="app-product-price">
-              <span class="app-product-old">1299 EGP</span>699 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(2)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="women" onclick="openProduct(3)">
-          <img src="" data-img-idx="36" alt="Casual Linen Shirt Dress" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Casual Linen Shirt Dress</div>
-            <div class="app-product-price">
-              <span class="app-product-old">599 EGP</span>299 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(3)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="new" onclick="openProduct(4)">
-          <img src="" data-img-idx="37" alt="Boho Printed Wide-Leg Pants" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Boho Printed Wide-Leg Pants</div>
-            <div class="app-product-price">
-              <span class="app-product-old">649 EGP</span>349 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(4)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="sale" onclick="openProduct(5)">
-          <img src="" data-img-idx="38" alt="Satin Slip Midi Skirt" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Satin Slip Midi Skirt</div>
-            <div class="app-product-price">
-              <span class="app-product-old">549 EGP</span>279 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(5)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="new" onclick="openProduct(6)">
-          <img src="" data-img-idx="39" alt="Oversized Blazer Coord" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Oversized Blazer Coord</div>
-            <div class="app-product-price">
-              <span class="app-product-old">999 EGP</span>549 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(6)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="sale" onclick="openProduct(7)">
-          <img src="" data-img-idx="40" alt="Classic White Linen Jumpsuit" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Classic White Linen Jumpsuit</div>
-            <div class="app-product-price">
-              <span class="app-product-old">799 EGP</span>399 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(7)">ADD TO CART</button>
-        </div>
-<div class="app-product" data-cat="new" onclick="openProduct(8)">
-          <img src="" data-img-idx="41" alt="Mesh Insert Bodycon Dress" loading="lazy">
-          <div class="app-product-info">
-            <div class="app-product-name">Mesh Insert Bodycon Dress</div>
-            <div class="app-product-price">
-              <span class="app-product-old">449 EGP</span>229 EGP
-            </div>
-          </div>
-          <button class="app-cart-btn" onclick="event.stopPropagation();addToCart(8)">ADD TO CART</button>
-        </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-  <div class="slide" data-index="13" id="slide-13">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div class="content-area">
-        <div class="content-left">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">Economic<br>Analysis</div>
-          <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Macro Context</span>Recovery is underway, but inflation and FX pressure remain high.</li>
-            <li class="reveal d4"><span class="bullet-label">Market Signal</span>Fashion demand is strong, especially among value-driven urban youth.</li>
-            <li class="reveal d5"><span class="bullet-label">Shein Fit</span>Affordable positioning aligns with real purchasing-power constraints.</li>
-          </ul>
-        </div>
-        <div class="content-right">
-          <img class="side-img reveal-scale d2" src="" data-img-idx="17" alt="Yehia Economic Analysis">
-          <div class="side-overlay"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide" data-index="14" id="slide-14">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div class="content-area">
-        <div class="content-left">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">Target<br>Audience</div>
-          <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Core Segment</span>Urban shoppers aged 16-30, primarily female, digital-first.</li>
-            <li class="reveal d4"><span class="bullet-label">Mindset</span>Trend-driven but highly value-conscious and social-proof dependent.</li>
-            <li class="reveal d5"><span class="bullet-label">Need Mix</span>Global style plus modest and occasion-appropriate options.</li>
-          </ul>
-        </div>
-        <div class="content-right">
-          <div class="img-grid-2">
-            <img src="" data-img-idx="18" alt="Yehia Target Audience 1">
-            <img src="" data-img-idx="19" alt="Yehia Target Audience 2">
-          </div>
-          <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide" data-index="15" id="slide-15">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div style="position:absolute;inset:0;top:56px;display:flex;">
-        <div class="content-left" style="flex:0 0 45%;min-width:300px;">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">PESTLE<br>Analysis</div>
-          <div class="red-line reveal d3" style="margin-bottom:24px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Environment</span>Supportive digital growth with manageable legal and import constraints.</li>
-            <li class="reveal d4"><span class="bullet-label">Opportunity</span>Young demographics and social commerce accelerate adoption.</li>
-            <li class="reveal d5"><span class="bullet-label">Priority</span>Local compliance, payments, and trust-building are critical.</li>
-          </ul>
-        </div>
-        <div class="lookbook-wrap">
-          <div class="lookbook-item reveal-scale d2"><img src="" data-img-idx="20" alt="Yehia PESTLE 1"></div>
-          <div class="lookbook-item reveal-scale d3"><img src="" data-img-idx="21" alt="Yehia PESTLE 2"></div>
-          <div class="lookbook-item reveal-scale d4" style="grid-column:1/-1"><img src="" data-img-idx="22" alt="Yehia PESTLE 3"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide" data-index="16" id="slide-16">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div class="content-area">
-        <div class="content-left">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">Entry<br>Strategy</div>
-          <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Phase 1</span>Localized Egypt app and payments with faster regional fulfillment.</li>
-            <li class="reveal d4"><span class="bullet-label">Phase 2</span>Open flagship stores in Cairo and Alexandria for trust and fit confidence.</li>
-            <li class="reveal d5"><span class="bullet-label">Phase 3</span>Scale by city performance and formalize reseller partners.</li>
-          </ul>
-        </div>
-        <div class="content-right">
-          <img class="side-img reveal-scale d2" src="" data-img-idx="17" alt="Yehia Entry Strategy">
-          <div class="side-overlay"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide" data-index="17" id="slide-17">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div class="content-area">
-        <div class="content-left">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">Pricing<br>Strategy</div>
-          <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Value Leadership</span>Keep low absolute prices to win in a high-inflation context.</li>
-            <li class="reveal d4"><span class="bullet-label">Promo Logic</span>Use charm pricing, bundles, and seasonal campaign discounts.</li>
-            <li class="reveal d5"><span class="bullet-label">Stability</span>Price in EGP and review quarterly against inflation and costs.</li>
-          </ul>
-        </div>
-        <div class="content-right">
-          <div class="img-grid-2">
-            <img src="" data-img-idx="18" alt="Yehia Pricing Strategy 1">
-            <img src="" data-img-idx="19" alt="Yehia Pricing Strategy 2">
-          </div>
-          <div class="side-overlay" style="background:linear-gradient(90deg,#0d0d0d 0%,transparent 30%)"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="slide" data-index="18" id="slide-18">
-    <div class="inner-slide">
-      <nav class="nav-strip">
-            <span class="nav-brand">SHEIN <em>Egypt</em></span>
-            <span class="nav-season">2026</span>
-          </nav>
-      <div style="position:absolute;inset:0;top:56px;display:flex;">
-        <div class="content-left" style="flex:0 0 45%;min-width:300px;">
-          <div class="cursive-tag reveal d1">Yehia Section</div>
-          <div class="slide-heading reveal d2">Conclusion &amp;<br>Recommendations</div>
-          <div class="red-line reveal d3" style="margin-bottom:24px"></div>
-          <ul class="bullet-list">
-            <li class="reveal d3"><span class="bullet-label">Bottom Line</span>Egypt is a high-fit market with existing demand and scalable upside.</li>
-            <li class="reveal d4"><span class="bullet-label">Immediate Focus</span>Localize product, pricing, payments, and service from day one.</li>
-            <li class="reveal d5"><span class="bullet-label">Execution Edge</span>Move fast with phased rollout before stronger competitor response.</li>
-          </ul>
-        </div>
-        <div class="lookbook-wrap">
-          <div class="lookbook-item reveal-scale d2"><img src="" data-img-idx="20" alt="Yehia Conclusion 1"></div>
-          <div class="lookbook-item reveal-scale d3"><img src="" data-img-idx="21" alt="Yehia Conclusion 2"></div>
-          <div class="lookbook-item reveal-scale d4" style="grid-column:1/-1"><img src="" data-img-idx="22" alt="Yehia Conclusion 3"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
 <!-- Product detail modal -->
 <div id="prod-modal">
@@ -2841,7 +2753,7 @@ document.addEventListener('mousemove',function(e){
 });
 
 // ── Slide engine ──
-var TOTAL=19,current=0,transitioning=false;
+var TOTAL=21,current=0,transitioning=false;
 var slides=document.querySelectorAll('.slide');
 var dots=document.querySelectorAll('.dot');
 var counter=document.getElementById('slide-counter');
@@ -2865,15 +2777,15 @@ function goTo(idx){
   var prev=slides[current],next=slides[idx];
   
   // Lifecycle management for 3D scenes
-  if (current === 4 && activeScenes.bus) { activeScenes.bus(); activeScenes.bus = null; }
-  if (current === 5 && activeScenes.ai) { activeScenes.ai(); activeScenes.ai = null; }
-  if (current === 6 && activeScenes.runway) { activeScenes.runway(); activeScenes.runway = null; }
-  if (idx === 4) { activeScenes.bus = makeBusScene(document.getElementById('bb-bus')); }
-  if (idx === 5) { activeScenes.ai = makeAIScene(document.getElementById('bb-ai')); }
-  if (idx === 6) { activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway')); }
+  if (current === 18 && activeScenes.bus) { activeScenes.bus(); activeScenes.bus = null; }
+  if (current === 19 && activeScenes.ai) { activeScenes.ai(); activeScenes.ai = null; }
+  if (current === 20 && activeScenes.runway) { activeScenes.runway(); activeScenes.runway = null; }
+  if (idx === 18) { activeScenes.bus = makeBusScene(document.getElementById('bb-bus')); }
+  if (idx === 19) { activeScenes.ai = makeAIScene(document.getElementById('bb-ai')); }
+  if (idx === 20) { activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway')); }
   
   // Background canvas optimization
-  window._stopBgCanvas = (idx >= 4 && idx <= 6) || idx === 12;
+  window._stopBgCanvas = (idx >= 18 && idx <= 20) || idx === 17;
 
   prev.classList.add('leaving');
   next.classList.add('entering','active');
@@ -3112,9 +3024,9 @@ document.addEventListener('mouseover', e => {
 
 // ── Three.js 3D scenes ──
 // Initial scene bootstrap check
-if (current === 4) activeScenes.bus = makeBusScene(document.getElementById('bb-bus'));
-if (current === 5) activeScenes.ai = makeAIScene(document.getElementById('bb-ai'));
-if (current === 6) activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway'));
+if (current === 18) activeScenes.bus = makeBusScene(document.getElementById('bb-bus'));
+if (current === 19) activeScenes.ai = makeAIScene(document.getElementById('bb-ai'));
+if (current === 20) activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway'));
 
 </script>
 </body>
