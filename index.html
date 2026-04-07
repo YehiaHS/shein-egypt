@@ -1979,14 +1979,69 @@ function makeAIScene(canvas) {
     phoneGrp.add(ring);
   });
 
-  // Particles
-  var pCount = 600, pGeo = new THREE.BufferGeometry();
+  // Particles — multi-color with additive blending for holographic feel
+  var pCount = 800, pGeo = new THREE.BufferGeometry();
   var pPos = new Float32Array(pCount * 3);
+  var pCol = new Float32Array(pCount * 3);
   for (var pi = 0; pi < pCount; pi++) {
-    pPos[pi*3]=(Math.random()-.5)*22; pPos[pi*3+1]=(Math.random()-.5)*16; pPos[pi*3+2]=(Math.random()-.5)*10-4;
+    pPos[pi*3]=  (Math.random()-.5)*22; pPos[pi*3+1]=(Math.random()-.5)*16; pPos[pi*3+2]=(Math.random()-.5)*10-4;
+    // Mix of red, blue, gold, white
+    var c = Math.floor(Math.random()*4);
+    if (c===0) {pCol[pi*3]=1; pCol[pi*3+1]=0.19; pCol[pi*3+2]=0.19;}
+    else if (c===1) {pCol[pi*3]=0.13; pCol[pi*3+1]=0.27; pCol[pi*3+2]=1;}
+    else if (c===2) {pCol[pi*3]=1; pCol[pi*3+1]=0.84; pCol[pi*3+2]=0;}
+    else {pCol[pi*3]=1; pCol[pi*3+1]=1; pCol[pi*3+2]=1;}
   }
   pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({color:0xff3131,size:0.038,transparent:true,opacity:0.38})));
+  pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({size:0.045, vertexColors:true, transparent:true, opacity:0.5, blending:THREE.AdditiveBlending})));
+
+  // ── Floating data node spheres ─────────────────────────
+  var nodes = [];
+  for (var ni = 0; ni < 12; ni++) {
+    var nodeGeo = new THREE.SphereGeometry(0.04 + Math.random()*0.04, 8, 8);
+    var nodeColor = Math.random()>0.5 ? 0xff3131 : (Math.random()>0.5 ? 0x2266ff : 0xffd700);
+    var nodeMat = new THREE.MeshBasicMaterial({color:nodeColor, transparent:true, opacity:0.6});
+    var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
+    var nAngle = (ni / 12) * Math.PI * 2;
+    var nRadius = 1.8 + Math.random()*1.2;
+    nodeMesh.position.set(Math.cos(nAngle)*nRadius, (ni-6)*0.35, Math.sin(nAngle)*nRadius*0.4);
+    scene.add(nodeMesh);
+    // Small glow point light on every third node
+    if (ni % 3 === 0) {
+      var nLight = new THREE.PointLight(nodeColor, 0.4, 3);
+      nLight.position.copy(nodeMesh.position);
+      scene.add(nLight);
+      nodes.push({mesh:nodeMesh, angle:nAngle, radius:nRadius, speed:0.15+Math.random()*0.1, yOff:(ni-6)*0.35, light:nLight});
+    } else {
+      nodes.push({mesh:nodeMesh, angle:nAngle, radius:nRadius, speed:0.15+Math.random()*0.1, yOff:(ni-6)*0.35, light:null});
+    }
+  }
+
+  // ── Vertical data streams (thin glowing lines) ─────────
+  var dataStreams = [];
+  for (var ds = 0; ds < 6; ds++) {
+    var streamLen = 80;
+    var streamGeo = new THREE.BufferGeometry();
+    var streamPts = new Float32Array(streamLen * 3);
+    var streamAngle = (ds / 6) * Math.PI * 2;
+    var streamRadius = 3.5 + Math.random()*1.5;
+    for (var sp = 0; sp < streamLen; sp++) {
+      streamPts[sp*3] = Math.cos(streamAngle) * streamRadius;
+      streamPts[sp*3+1] = -4 + sp * 0.12;
+      streamPts[sp*3+2] = Math.sin(streamAngle) * streamRadius * 0.5;
+    }
+    streamGeo.setAttribute('position', new THREE.BufferAttribute(streamPts, 3));
+    var streamCol = new Float32Array(streamLen * 3);
+    for (var sc = 0; sc < streamLen; sc++) {
+      var fade = 1 - sc/streamLen;
+      streamCol[sc*3] = fade; streamCol[sc*3+1] = fade*0.19; streamCol[sc*3+2] = fade*0.19;
+    }
+    streamGeo.setAttribute('color', new THREE.BufferAttribute(streamCol, 3));
+    var streamLine = new THREE.Line(streamGeo, new THREE.LineBasicMaterial({vertexColors:true, transparent:true, opacity:0.2}));
+    scene.add(streamLine);
+    dataStreams.push({line:streamLine, geo:streamGeo, angle:streamAngle, radius:streamRadius, speed:0.02+Math.random()*0.01});
+  }
 
   // ── Animate ───────────────────────────────────────────
   var clock = new THREE.Clock();
@@ -2031,6 +2086,43 @@ function makeAIScene(canvas) {
       pa[3]=card.position.x; pa[4]=card.position.y; pa[5]=card.position.z;
       lines[i].geometry.attributes.position.needsUpdate = true;
     });
+
+    // Animate data nodes
+    nodes.forEach(function(n) {
+      n.angle += n.speed * dt;
+      n.mesh.position.x = Math.cos(n.angle) * n.radius;
+      n.mesh.position.y = n.yOff + Math.sin(t * 0.8 + n.angle) * 0.3;
+      n.mesh.position.z = Math.sin(n.angle) * n.radius * 0.5;
+      n.mesh.material.opacity = 0.4 + Math.sin(t * 2 + n.angle * 3) * 0.3;
+      if (n.light) {
+        n.light.intensity = 0.3 + Math.sin(t * 1.5 + n.angle * 2) * 0.2;
+        n.light.position.copy(n.mesh.position);
+      }
+    });
+
+    // Animate data streams — spiral drift
+    dataStreams.forEach(function(ds) {
+      var arr = ds.geo.attributes.position.array;
+      var len = arr.length / 3;
+      ds.angle += ds.speed * dt;
+      for (var si = 0; si < len; si++) {
+        arr[si*3]   = Math.cos(ds.angle) * ds.radius + Math.sin(si * 0.15 + t) * 0.05;
+        arr[si*3+1] += ds.speed * 2 * dt;
+        arr[si*3+2] = Math.sin(ds.angle) * ds.radius * 0.5;
+        if (arr[si*3+1] > 5) arr[si*3+1] = -4;
+      }
+      ds.geo.attributes.position.needsUpdate = true;
+    });
+
+    // Particle drift for holographic feel
+    var ppa = pGeo.attributes.position.array;
+    for (var ppi = 0; ppi < pCount; ppi++) {
+      ppa[ppi*3+0] += Math.sin(t*0.3 + ppi*0.02) * 0.002;
+      ppa[ppi*3+1] += Math.cos(t*0.25 + ppi*0.015) * 0.001;
+      if (ppa[ppi*3+1] > 8) ppa[ppi*3+1] = -8;
+      if (ppa[ppi*3+1] < -8) ppa[ppi*3+1] = 8;
+    }
+    pGeo.attributes.position.needsUpdate = true;
 
     renderer.render(scene, camera);
   }
@@ -2177,18 +2269,58 @@ function makeRunwayScene(canvas) {
     });
   }
 
-  // Spotlights
+  // Spotlights with colored gels
   var spots = [];
+  var spotColors = [0xffffff, 0xffeedd, 0xffdddd];
   [[-4, 8, -5], [4, 8, -5], [0, 8, 2]].forEach(function(pos, i) {
-    var sl = new THREE.SpotLight(0xffffff, 2.5);
+    var sl = new THREE.SpotLight(spotColors[i], 2.5);
     sl.position.set(pos[0], pos[1], pos[2]);
     sl.angle = Math.PI / 8; sl.penumbra = 0.5;
     sl.castShadow = true;
     var target = new THREE.Object3D(); target.position.set(pos[0]*0.2, 0, 0);
     scene.add(target); sl.target = target;
     scene.add(sl);
-    spots.push({ light: sl, tg: target, offset: i * Math.PI/1.5 });
+    spots.push({ light: sl, tg: target, offset: i * Math.PI/1.5, origColor: spotColors[i] });
   });
+
+  // ── Volumetric light beam cones (fake god rays) ────────
+  var volConeBeams = [];
+  spots.forEach(function(s, vi) {
+    var coneGeo = new THREE.CylinderGeometry(0.3, 3.5, 8, 12, 1, true);
+    var coneMat = new THREE.MeshBasicMaterial({
+      color: s.origColor, transparent: true, opacity: 0.025,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+    });
+    var cone = new THREE.Mesh(coneGeo, coneMat);
+    cone.position.set(s.light.position.x, s.light.position.y - 4, s.light.position.z);
+    cone.rotation.z = (s.tg.position.x - s.light.position.x) * 0.1;
+    scene.add(cone);
+    volConeBeams.push({ mesh: cone, mat: coneMat, baseIntensity: 0.025, phase: Math.random() * Math.PI * 2 });
+  });
+
+  // ── Sparkle dust in spotlight beams ────────────────────
+  var sparkleCount = 200, sparkleGeo = new THREE.BufferGeometry();
+  var sparklePositions = new Float32Array(sparkleCount * 3);
+  var sparkleSizes = new Float32Array(sparkleCount);
+  for (var sk = 0; sk < sparkleCount; sk++) {
+    var spotIdx = Math.floor(Math.random() * spots.length);
+    var sy = Math.random() * 8;
+    var tFrac = sy / 8;
+    var spread = tFrac * 1.5;
+    var sx = spots[spotIdx].light.position.x + (Math.random() - 0.5) * spread * 2;
+    var sz = spots[spotIdx].light.position.z + (Math.random() - 0.5) * spread * 1.5;
+    sparklePositions[sk * 3] = sx;
+    sparklePositions[sk * 3 + 1] = sy;
+    sparklePositions[sk * 3 + 2] = sz;
+    sparkleSizes[sk] = 0.03 + Math.random() * 0.06;
+  }
+  sparkleGeo.setAttribute('position', new THREE.BufferAttribute(sparklePositions, 3));
+  sparkleGeo.setAttribute('size', new THREE.BufferAttribute(sparkleSizes, 1));
+  var sparkleSys = new THREE.Points(sparkleGeo, new THREE.PointsMaterial({
+    color: 0xffeedd, size: 0.05, transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+  }));
+  scene.add(sparkleSys);
 
   // Camera flash lights from audience
   var flashes = [];
