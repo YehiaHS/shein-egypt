@@ -509,6 +509,63 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 #page-loader.hidden{opacity:0 !important;visibility:hidden !important;}
 @keyframes loader-spin{to{transform:rotate(360deg);}}
 
+/* ── Slide entrance stagger ── */
+.slide .reveal{will-change:opacity,transform;}
+
+/* ── Breathing glow on accent elements ── */
+.red-line.in{animation:accentBreath 3s ease-in-out infinite !important;}
+@keyframes accentBreath{0%,100%{box-shadow:0 0 12px var(--red-glow);}50%{box-shadow:0 0 24px var(--red-glow),0 0 48px rgba(255,49,49,.12);}}
+
+/* ── Side image parallax on active slide ── */
+.side-img.in{animation:sideKenBurns 12s ease-out forwards;}
+@keyframes sideKenBurns{0%{transform:scale(1.06) translateX(-1%);}100%{transform:scale(1) translateX(0);}}
+
+/* ── Nav strip accent line ── */
+.nav-strip{position:relative;}
+.nav-strip::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:2px;background:var(--red);
+  transition:width .6s cubic-bezier(.23,1,.32,1);box-shadow:0 0 8px var(--red-glow);}
+.slide.active .nav-strip::after{width:100%;}
+
+/* ── Content card glass effect ── */
+.content-left,.browser-panel,.phone-panel{
+  background:linear-gradient(135deg,rgba(10,0,0,.35),rgba(0,0,0,.55));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.06);
+  position:relative;
+}
+.content-left::before,.browser-panel::before,.phone-panel::before{
+  content:'';position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(255,49,49,.08),transparent 40%,transparent 60%,rgba(255,49,49,.04));
+  pointer-events:none;
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;border-radius:inherit;opacity:0;
+  transition:opacity .6s ease;}
+.slide.active .content-left::before,.slide.active .browser-panel::before,.slide.active .phone-panel::before{opacity:1;}
+
+/* ── Bullet items slide in with stagger ── */
+.bullet-list li.in{animation:bulletIn .6s cubic-bezier(.23,1,.32,1) both;}
+@keyframes bulletIn{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:none;}}
+
+/* ── Product cards hover lift ── */
+.app-product{transition:transform .4s cubic-bezier(.23,1,.32,1),box-shadow .4s ease;}
+.app-product:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(255,49,49,.15);}
+
+/* ── Geometric accent dots on slides ── */
+.inner-slide::after{content:'';position:absolute;bottom:40px;right:40px;width:60px;height:60px;
+  border:1px solid rgba(255,49,49,.08);border-radius:50%;pointer-events:none;
+  animation:geoFloat 8s ease-in-out infinite;opacity:0;transition:opacity .6s ease;}
+.slide.active .inner-slide::after{opacity:1;}
+@keyframes geoFloat{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-8px) scale(1.05);}}
+
+/* ── Promo slide text shadow ── */
+.promo-heading{animation:promGlow 4s ease-in-out infinite normal;}
+@keyframes promGlow{0%,100%{text-shadow:0 4px 30px rgba(0,0,0,.5);}
+  50%{text-shadow:0 4px 30px rgba(0,0,0,.5),0 0 40px rgba(255,49,49,.15);}}
+
+/* ── Store slide shimmer ── */
+.store-slide{animation:storeShimmer 3s ease-in-out infinite;}
+@keyframes storeShimmer{0%,100%{filter:brightness(1);}50%{filter:brightness(1.02);}}
+
 </style>
 </head>
 <body>
@@ -2163,23 +2220,33 @@ function makeRunwayScene(canvas) {
     var cv = document.createElement('canvas'); cv.width = 512; cv.height = 512;
     var ctx = cv.getContext('2d');
     ctx.fillStyle = '#e8e0d5'; ctx.fillRect(0, 0, 512, 512);
-    // Marble veins
-    ctx.strokeStyle = 'rgba(180,170,160,0.35)'; ctx.lineWidth = 1.5;
-    for (var v = 0; v < 12; v++) {
-      ctx.beginPath();
-      var vy = Math.random() * 512;
-      for (var vx = 0; vx < 512; vx += 8) {
-        vy += (Math.random() - 0.5) * 6;
-        vx === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy);
+    // Marble veins — more layered
+    for (var pass = 0; pass < 3; pass++) {
+      ctx.strokeStyle = pass === 0 ? 'rgba(180,170,160,0.35)' : pass === 1 ? 'rgba(200,190,180,0.2)' : 'rgba(160,150,140,0.15)';
+      ctx.lineWidth = pass === 0 ? 1.5 : (pass === 1 ? 1 : 0.5);
+      for (var v = 0; v < 8 + pass * 6; v++) {
+        ctx.beginPath();
+        var vy = Math.random() * 512;
+        for (var vx = 0; vx < 512; vx += 6) {
+          vy += (Math.random() - 0.5) * (5 + pass * 2);
+          vx === 0 ? ctx.moveTo(vx, vy) : ctx.lineTo(vx, vy);
+        }
+        ctx.stroke();
       }
-      ctx.stroke();
     }
     // Subtle light reflections
     var rg = ctx.createLinearGradient(256, 0, 256, 512);
     rg.addColorStop(0, 'rgba(255,255,255,0.06)');
-    rg.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+    rg.addColorStop(0.5, 'rgba(255,255,255,0.14)');
     rg.addColorStop(1, 'rgba(255,255,255,0.06)');
     ctx.fillStyle = rg; ctx.fillRect(200, 0, 112, 512);
+    // Red accent streak
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = '#FF3131';
+    ctx.fillRect(200, 0, 112, 2);
+    ctx.fillRect(200, 0, 2, 512);
+    ctx.fillRect(310, 0, 2, 512);
+    ctx.globalAlpha = 1;
     return new THREE.CanvasTexture(cv);
   }
   var marbleTex = createMarbleTex();
@@ -2537,6 +2604,56 @@ function makeRunwayScene(canvas) {
         f.light.intensity *= 0.88;
       }
     });
+
+    // Spotlight color cycling — gradual tint shifts for a fashion-forward vibe
+    var colorCycle = elapsed * 0.1;
+    spots.forEach(function(s, idx) {
+      var phase = colorCycle + idx * 0.7;
+      var r = 1.0;
+      var g = 0.95 + Math.sin(phase) * 0.05;
+      var b = 0.9 + Math.sin(phase + 1.5) * 0.1;
+      s.light.color.setRGB(r, g, b);
+      // Subtle intensity sweep
+      s.light.intensity = 2.5 + Math.sin(phase * 0.8) * 0.5;
+    });
+
+    // Volumetric beam animation (cone beams breathe)
+    volConeBeams.forEach(function(vc, idx) {
+      var breathe = 0.02 + Math.sin(elapsed * 0.6 + vc.phase) * 0.01;
+      vc.mat.opacity = breathe;
+      // Tilt beam slightly toward character
+      var dx = (charGrp.position.x - vc.mesh.position.x) * 0.05;
+      vc.mesh.rotation.z = dx;
+    });
+
+    // Sparkle dust drift in spotlight beams
+    var sArr = sparkleGeo.attributes.position.array;
+    for (var si2 = 0; si2 < sparkleCount; si2++) {
+      sArr[si2*3+0] += (Math.random()-0.5) * 0.008;
+      sArr[si2*3+1] += (Math.random()-0.5) * 0.004 + 0.002;
+      sArr[si2*3+2] += (Math.random()-0.5) * 0.008;
+      // Keep in column
+      var spotRef = spots[si2 % spots.length];
+      var maxSpread = 1.5;
+      if (sArr[si2*3+0] > spotRef.light.position.x + maxSpread) sArr[si2*3+0] = spotRef.light.position.x - maxSpread * 0.5;
+      if (sArr[si2*3+0] < spotRef.light.position.x - maxSpread) sArr[si2*3+0] = spotRef.light.position.x + maxSpread * 0.5;
+      if (sArr[si2*3+1] > 8) sArr[si2*3+1] = 0;
+      if (sArr[si2*3+2] > spotRef.light.position.z + maxSpread) sArr[si2*3+2] = spotRef.light.position.z - maxSpread * 0.5;
+      if (sArr[si2*3+2] < spotRef.light.position.z - maxSpread) sArr[si2*3+2] = spotRef.light.position.z + maxSpread * 0.5;
+    }
+    sparkleGeo.attributes.position.needsUpdate = true;
+    sparkleSys.material.opacity = 0.5 + Math.sin(elapsed * 1.2) * 0.3;
+
+    // Dress skirt subtle wave animation
+    skirt.scale.x = 1 + Math.sin(t * Math.PI * 2) * 0.06;
+    skirt.scale.z = 1 + Math.cos(t * Math.PI * 2) * 0.06;
+
+    // Belt gold shimmer
+    beltMat.shininess = 80 + Math.sin(elapsed * 3) * 40;
+
+    // Fog texture animation (subtle drift)
+    fogPlane.position.x = Math.sin(elapsed * 0.15) * 0.5;
+    fogPlane.position.z = -5 + Math.sin(elapsed * 0.1) * 1;
 
     renderer.render(scene, camera);
   }
