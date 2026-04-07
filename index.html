@@ -7,7 +7,7 @@
 <meta name="description" content="SHEIN Egypt 2026 Fashion Collection — interactive 3D presentation with live store demo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" async></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script>
 // Async-load image data file via a single script element — no duplicates
 (function(){
@@ -566,6 +566,43 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 .store-slide{animation:storeShimmer 3s ease-in-out infinite;}
 @keyframes storeShimmer{0%,100%{filter:brightness(1);}50%{filter:brightness(1.02);}}
 
+
+  /* ── Integrated AI Outfit Finder Styles ── */
+  .ai-overlay{position:absolute;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:40px;opacity:0;transition:opacity .6s ease;}
+  .slide.active .ai-overlay{opacity:1;pointer-events:auto;}
+  .ai-top-ui{display:flex;justify-content:space-between;align-items:flex-start;}
+  .ai-stats{display:flex;gap:15px;flex-wrap:wrap;}
+  .ai-stat-card{background:rgba(10,10,10,.6);backdrop-filter:blur(12px);border:1px solid rgba(255,255,249,.1);padding:15px 20px;border-radius:12px;min-width:140px;transform:translateY(20px);opacity:0;transition:all .5s ease;}
+  .slide.active .ai-stat-card{transform:none;opacity:1;}
+  .ai-stat-label{font-size:10px;letter-spacing:2px;color:rgba(255,255,249,.4);margin-bottom:5px;text-transform:uppercase;}
+  .ai-stat-value{font-size:24px;font-weight:900;color:var(--red);text-shadow:0 0 15px var(--red-glow);}
+  
+  .ai-scan-lines{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .3s;}
+  .ai-scan-lines.active{opacity:1;}
+  .ai-scan-lines::after{content:'';position:absolute;left:0;right:0;height:3px;background:var(--red);box-shadow:0 0 20px var(--red),0 0 40px var(--red);animation:aiScan 2s linear infinite;}
+  @keyframes aiScan{0%{top:-5%;}100%{top:105%;}}
+
+  .ai-controls{text-align:center;margin-bottom:100px;}
+  #ai-snap-btn{background:var(--red);color:#fff;border:none;border-radius:50px;padding:16px 48px;font-size:14px;font-weight:900;letter-spacing:3px;text-transform:uppercase;cursor:pointer;box-shadow:0 0 30px var(--red-glow);transition:all .3s ease;}
+  #ai-snap-btn:hover{transform:scale(1.05);box-shadow:0 0 50px var(--red-glow);}
+  #ai-snap-btn:active{transform:scale(.95);}
+  #ai-snap-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  .ai-hint{font-family:var(--cursive);font-size:1.2rem;color:rgba(255,255,249,.4);margin-top:15px;min-height:1.5em;}
+  
+  .ai-rec-wrap{position:absolute;bottom:100px;left:40px;right:40px;display:flex;gap:15px;justify-content:center;pointer-events:none;z-index:30;}
+  .ai-rec-card{flex:0 1 200px;background:rgba(15,15,15,.8);backdrop-filter:blur(10px);border:1px solid rgba(255,255,249,.1);border-radius:10px;overflow:hidden;transform:translateY(30px);opacity:0;transition:all .5s cubic-bezier(.23,1,.32,1);pointer-events:auto;}
+  .ai-rec-card.show{transform:none;opacity:1;}
+  .ai-rec-card:hover{border-color:var(--red);transform:translateY(-5px);}
+  .ai-rec-img{width:100%;height:150px;object-fit:cover;}
+  .ai-rec-info{padding:12px;}
+  .ai-rec-name{font-size:11px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ai-rec-price{font-size:13px;font-weight:900;color:var(--red);}
+
+  #ai-flash{position:fixed;inset:0;background:#fff;z-index:10000;pointer-events:none;opacity:0;}
+  #ai-flash.active{animation:flashAnim .4s ease-out;}
+  @keyframes flashAnim{0%{opacity:1;}100%{opacity:0;}}
+
 </style>
 </head>
 <body>
@@ -721,9 +758,34 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 <div class="slide" data-index="5" id="slide-5">
   <div class="promo-slide">
     <canvas class="bb-canvas" id="bb-ai"></canvas>
-    <div class="ref-thumb reveal d1" data-img="" data-img-src="9" title="Click to expand">
-      <div class="ref-thumb-label">AI Outfit Finder Preview</div>
-      <img src="" data-img-idx="10" alt="AI Outfit Finder Preview">
+    
+    <div class="ai-overlay">
+      <div class="ai-top-ui">
+        <div class="ai-stats">
+          <div class="ai-stat-card"><div class="ai-stat-label">Style Match</div><div class="ai-stat-value" id="ai-match">--%</div></div>
+          <div class="ai-stat-card"><div class="ai-stat-label">Trend Score</div><div class="ai-stat-value" id="ai-trend">--%</div></div>
+        </div>
+      </div>
+
+      <div class="ai-controls">
+        <button id="ai-snap-btn">Snap &amp; Style</button>
+        <div class="ai-hint" id="ai-hint">Point your camera at any outfit</div>
+      </div>
+    </div>
+
+    <div class="ai-rec-wrap" id="ai-recs">
+      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-1"><div class="ai-rec-info"><div class="ai-rec-name">Floral Chiffon Dress</div><div class="ai-rec-price">449 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-2"><div class="ai-rec-info"><div class="ai-rec-name">Ribbed Co-ord Set</div><div class="ai-rec-price">375 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-3"><div class="ai-rec-info"><div class="ai-rec-name">Evening Abaya</div><div class="ai-rec-price">699 EGP</div></div></div>
+      <div class="ai-rec-card"><img class="ai-rec-img" src="" id="rec-img-4"><div class="ai-rec-info"><div class="ai-rec-name">Linen Shirt Dress</div><div class="ai-rec-price">299 EGP</div></div></div>
+    </div>
+
+    <div class="ai-scan-lines" id="ai-scan-lines"></div>
+    <div id="ai-flash"></div>
+
+    <div class="ref-thumb reveal d1" title="Click to expand">
+      <div class="ref-thumb-label">Source Photo</div>
+      <img src="assets/ai_scan_source_1775553484016.png" alt="AI Outfit Finder Source">
       <div class="ref-thumb-expand">&#x26F6;</div>
     </div>
     <div class="promo-ui">
@@ -2928,6 +2990,94 @@ document.getElementById('prod-modal').addEventListener('click', function(e){
   if(e.target === this) closeProdModal();
 });
 
+
+
+// AI Outfit Finder Logic
+(function(){
+  const snapBtn = document.getElementById('ai-snap-btn');
+  const flash = document.getElementById('ai-flash');
+  const scanLines = document.getElementById('ai-scan-lines');
+  const hint = document.getElementById('ai-hint');
+  const matchVal = document.getElementById('ai-match');
+  const trendVal = document.getElementById('ai-trend');
+  const recWrap = document.getElementById('ai-recs');
+  
+  const recImgs = [
+    'assets/floral_maxi_dress_1775553407339.png',
+    'assets/coord_set_1775553423067.png',
+    'assets/evening_abaya_1775553440042.png',
+    'assets/linen_shirt_dress_1775553458326.png'
+  ];
+
+  if (snapBtn) {
+    snapBtn.addEventListener('click', () => {
+      snapBtn.disabled = true;
+      hint.textContent = 'Analyzing outfit...';
+      
+      // Flash effect
+      flash.classList.add('active');
+      setTimeout(() => flash.classList.remove('active'), 500);
+
+      // Scanning lines
+      scanLines.classList.add('active');
+      
+      // Dynamic stats calculation
+      let m = 0, t = 0;
+      const interval = setInterval(() => {
+        m += Math.floor(Math.random() * 5 + 3);
+        t += Math.floor(Math.random() * 4 + 2);
+        if(m >= 94) { m = 94; clearInterval(interval); finishScan(); }
+        if(t >= 88) t = 88;
+        matchVal.textContent = m + '%';
+        trendVal.textContent = t + '%';
+      }, 100);
+    });
+  }
+
+  function finishScan() {
+    scanLines.classList.remove('active');
+    hint.textContent = 'Found 4 matches for your style!';
+    
+    // Display recommended fashion items
+    for(let i = 0; i < 4; i++) {
+       const imgEl = document.getElementById('rec-img-' + (i+1));
+       if (imgEl) imgEl.src = recImgs[i];
+    }
+    
+    const cards = recWrap.querySelectorAll('.ai-rec-card');
+    cards.forEach((card, i) => {
+      setTimeout(() => card.classList.add('show'), i * 250);
+    });
+  }
+})();
+
+// Store Micro-animations (Tilt Effect)
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('.ss-product, .app-product');
+  if (!el) return;
+  
+  const moveHandler = ev => {
+    const rect = el.getBoundingClientRect();
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+    const xc = rect.width / 2;
+    const yc = rect.height / 2;
+    const dx = x - xc;
+    const dy = y - yc;
+    el.style.transform = `perspective(600px) rotateX(${-dy / 25}deg) rotateY(${dx / 25}deg) scale(1.03)`;
+    el.style.zIndex = '10';
+  };
+  
+  const leaveHandler = () => {
+    el.style.transform = '';
+    el.style.zIndex = '';
+    el.removeEventListener('mousemove', moveHandler);
+    el.removeEventListener('mouseleave', leaveHandler);
+  };
+  
+  el.addEventListener('mousemove', moveHandler);
+  el.addEventListener('mouseleave', leaveHandler);
+});
 
 // ── Three.js 3D scenes ──
 makeBusScene(document.getElementById('bb-bus'));
