@@ -146,6 +146,51 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .feat-pill:hover{background:rgba(255,49,17,.1);border-color:rgba(255,49,49,.4);}
 .feat-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* === CONFIDENCE BARS (new) === */
+.confidence{position:relative;z-index:10;max-width:500px;margin:0 auto 32px;padding:0 20px;
+  opacity:0;animation:fadeUp .8s ease .55s forwards;}
+.conf-bar{margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.conf-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,249,.4);width:90px;text-align:right;flex-shrink:0;}
+.conf-track{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;position:relative;}
+.conf-fill{height:100%;border-radius:3px;width:0;transition:width 1.5s cubic-bezier(.23,1,.32,1);}
+.conf-fill.red{background:linear-gradient(90deg,#FF3131,#ff6b6b);box-shadow:0 0 8px var(--red-glow);}
+.conf-fill.cyan{background:linear-gradient(90deg,#00e5ff,#66f0ff);box-shadow:0 0 8px var(--cyan-glow);}
+.conf-fill.gold{background:linear-gradient(90deg,#ffd700,#ffe566);box-shadow:0 0 8px rgba(255,215,0,.3);}
+.conf-fill.green{background:linear-gradient(90deg,#33ff99,#66ffbb);box-shadow:0 0 8px var(--green-glow);}
+
+/* === ANIMATED HERO BORDER === */
+.hero{position:relative;border-radius:16px;}
+.hero::before{content:'';position:absolute;inset:-1px;border-radius:17px;padding:1px;
+  background:linear-gradient(270deg,var(--red),var(--cyan),var(--green),var(--gold),var(--purple),var(--red));
+  background-size:400% 100%;animation:gradShift 4s ease infinite;
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:.5;}
+
+/* === SCAN LINES (phone stage overlay) === */
+.scanlines{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .3s;}
+.scanlines.active{opacity:1;}
+.scanlines::before{content:'';position:absolute;inset:-50%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,49,49,.03) 2px,rgba(255,49,49,.03) 4px);
+  animation:scanMove 3s linear infinite;}
+@keyframes scanMove{from{transform:translateY(0);}to{transform:translateY(50%);}}
+.scanlines::after{content:'';position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+  box-shadow:0 0 15px var(--red-glow),0 0 30px var(--red-glow);
+  animation:scanLine 1.5s ease-in-out infinite;}
+@keyframes scanLine{0%{top:0%;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{top:100%;opacity:0;}}
+
+/* === CARD SHIMMER on hover === */
+.rec-card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,49,49,.06) 45%,rgba(255,49,49,.12) 50%,rgba(255,49,49,.06) 55%,transparent 60%);
+  background-size:200% 100%;opacity:0;transition:opacity .4s;pointer-events:none;}
+.rec-card:hover::before{opacity:1;animation:shimmer 1.2s ease-in-out infinite;}
+@keyframes shimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.rec-card{position:relative;}
+
+/* === FOOTER === */
+.footer{text-align:center;padding:20px;font-size:11px;color:rgba(255,255,249,.2);letter-spacing:2px;
+  opacity:0;animation:fadeUp .8s ease .6s forwards;}
 </style>
 </head>
 <body>
@@ -183,6 +228,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     <div class="stat-card"><div class="label">Size Accuracy</div><div class="value" id="stat-size">--</div></div>
     <div class="stat-card"><div class="label">Colour Harmony</div><div class="value" id="stat-color">--</div></div>
   </div>
+  <div class="scanlines" id="scanlines"></div>
+</div>
+
+<!-- Confidence bars before action bar -->
+<div class="confidence" id="confidence">
+  <div class="conf-bar"><span class="conf-label">Style Match</span><div class="conf-track"><div class="conf-fill red" data-width="94"></div></div></div>
+  <div class="conf-bar"><span class="conf-label">Trend Score</span><div class="conf-track"><div class="conf-fill cyan" data-width="87"></div></div></div>
+  <div class="conf-bar"><span class="conf-label">Size Accuracy</span><div class="conf-track"><div class="conf-fill gold" data-width="98"></div></div></div>
+  <div class="conf-bar"><span class="conf-label">Colour Harmony</span><div class="conf-track"><div class="conf-fill green" data-width="91"></div></div></div>
 </div>
 
 <!-- Snapshot button -->
@@ -654,6 +708,8 @@ function drawRecImg(id,type){
         animateStat('stat-match',targetMatch);animateStat('stat-trend',targetTrend);
         animateStat('stat-size',targetSize);animateStat('stat-color',targetColor);
         animateRecCards();
+        animateConfidence();
+        setTimeout(function(){document.getElementById('scanlines').classList.remove('active');},2000);
         typeHint('4 outfit items detected \u2014 Scroll for personalized picks');
       }
     }
@@ -737,12 +793,24 @@ function drawRecImg(id,type){
       document.getElementById('stat-size').textContent='--';document.getElementById('stat-size').classList.remove('active');
       document.getElementById('stat-color').textContent='--';document.getElementById('stat-color').classList.remove('active');
       document.querySelectorAll('.rec-card').forEach(function(c){c.classList.remove('show');});
+      document.getElementById('scanlines').classList.remove('active');
+      // Reset confidence bars
+      document.querySelectorAll('.conf-fill').forEach(function(f){f.style.width='0';});
       snapBtn.textContent='Snap Photo';typeHint('Point your camera at any outfit');
       return;
     }
     scanPhase='scanning';snapBtn.textContent='Restart';
     typeHint('AI is analyzing your outfit composition...');
+    // Activate scan lines
+    document.getElementById('scanlines').classList.add('active');
   });
+
+  // Animate confidence bars on scan complete
+  function animateConfidence(){
+    document.querySelectorAll('.conf-fill').forEach(function(f){
+      f.style.width=f.getAttribute('data-width')+'%';
+    });
+  }
 
 })();
 
@@ -782,5 +850,6 @@ setTimeout(function(){var l=document.getElementById('loader');if(l)l.classList.a
   window.addEventListener('resize',function(){cam.aspect=window.innerWidth/window.innerHeight;cam.updateProjectionMatrix();r.setSize(window.innerWidth,window.innerHeight);});
 })();
 </script>
+<div class="footer">SHEIN AI Outfit Finder &middot; Demo 2026 &middot; Not affiliated with SHEIN</div>
 </body>
 </html>
