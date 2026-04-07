@@ -7,50 +7,47 @@
 <meta name="description" content="SHEIN Egypt 2026 Fashion Collection — interactive 3D presentation with live store demo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" async></script>
 <script>
-// Async-load image data file without blocking initial paint
-function loadImagesData(){
-  return new Promise(function(ok,fail){
-    var s=document.createElement('script');
-    s.src='images-data.js';s.onload=ok;s.onerror=fail;
-    document.head.appendChild(s);
-  });
-}
-// Lazy-load images when their slide becomes active
+// Async-load image data file via a single script element — no duplicates
 (function(){
-var loaded={},imagesReady=false;
-loadImagesData().then(function(){imagesReady=true;}).catch(function(){/* will retry */});
+var loaded={},pending=[],imagesReady=false;
+var s=document.createElement('script');
+s.src='images-data.js';
+s.onload=function(){imagesReady=true;pending.forEach(function(el){tryApply(el);});pending=[];};
+s.onerror=function(){setTimeout(function(){document.head.appendChild(s);},2000);};
+document.head.appendChild(s);
 
-function loadImg(el){
+function tryApply(el){
   var idx=el.getAttribute('data-img-idx');
   var srcIdx=el.getAttribute('data-img-src');
   var target=idx||srcIdx;
-  if(target==null||loaded[target])return;
+  if(target==null||loaded[target])return true;
   loaded[target]=true;
-  var tryLoad=function(){
-    if(!window.SHEIN_IMAGES){setTimeout(function(){loadImagesData().then(function(){imagesReady=true;tryLoad();});},100);return;}
-    var d=window.SHEIN_IMAGES[parseInt(target)];
-    if(!d)return;
-    el.src=d;if(srcIdx!==null){el.setAttribute('data-img','');}
-  };
-  if(imagesReady){tryLoad();}else{tryLoad();}
+  if(!window.SHEIN_IMAGES)return false;
+  var d=window.SHEIN_IMAGES[parseInt(target)];
+  if(!d)return true;
+  el.src=d;
+  return true;
 }
-function loadSlideImages(slide){if(!slide)return;slide.querySelectorAll('[data-img-idx]').forEach(loadImg);slide.querySelectorAll('[data-img-src]').forEach(loadImg);}
+function loadSlideImages(slide){
+  if(!slide)return;
+  slide.querySelectorAll('[data-img-idx],[data-img-src]').forEach(function(el){
+    if(!tryApply(el))pending.push(el);
+  });
+}
 window._lazyLoad=function(idx){
   var slides=document.querySelectorAll('.slide');
   if(slides[idx])loadSlideImages(slides[idx]);
   if(slides[idx-1])loadSlideImages(slides[idx-1]);
   if(slides[idx+1])loadSlideImages(slides[idx+1]);
 };
-// Show page immediately, hide loader after 800ms
 setTimeout(function(){
   var ldr=document.getElementById('page-loader');
   if(ldr)ldr.classList.add('hidden');
-  // Load first slide images in background
   var first=document.querySelector('.slide.active');
   if(first)loadSlideImages(first);
-},800);
+},500);
 })();
 </script>
 <style>
@@ -596,7 +593,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div class="content-area">
       <div class="content-left">
@@ -623,14 +620,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div class="content-area">
       <div class="content-left">
         <div class="cursive-tag reveal d1">Market Analysis</div>
-        <div class="slide-heading reveal d2">Competitive<br>Landscape</div>
+        <div class="slide-heading reveal d2">Business<br>Etiquette</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
-        <p class="slide-body reveal d4">SHEIN dominates fast-fashion e-commerce in Egypt, leveraging hyper-affordable pricing, trend velocity, and deep social media penetration to capture the youth demographic against international competitors.</p>
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">High Power Distance</span>Professional image and formal communication matter.</li>
+          <li class="reveal d4"><span class="bullet-label">Collectivist Culture</span>Influencer engagement is key to building trust.</li>
+          <li class="reveal d5"><span class="bullet-label">High Uncertainty Avoidance</span>Clear pricing and policies increase confidence.</li>
+        </ul>
       </div>
       <div class="comp-right">
         <div class="comp-main reveal-scale d2">
@@ -693,14 +694,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div style="position:absolute;inset:0;top:56px;display:flex;">
       <div class="content-left" style="flex:0 0 38%;padding:40px;">
-        <div class="cursive-tag reveal d1">Collection</div>
-        <div class="slide-heading reveal d2">Key<br>Pieces</div>
+        <div class="cursive-tag reveal d1">Market Analysis</div>
+        <div class="slide-heading reveal d2">Competitive<br>Landscape</div>
         <div class="red-line reveal d3" style="margin-bottom:20px"></div>
-        <p class="slide-body reveal d4">A curated selection from the SHEIN 2026 Autumn Collection — modest silhouettes with contemporary cuts for the modern Egyptian woman.</p>
+        <ul class="bullet-list">
+          <li class="reveal d3"><span class="bullet-label">Centrepoint</span>Strong market presence with multiple branches across Egypt.</li>
+          <li class="reveal d4"><span class="bullet-label">Concept Stores</span>Familiar among Gen Z but with repetitive style and lower modest-wear alignment.</li>
+          <li class="reveal d5"><span class="bullet-label">Pricing Perception</span>Both key competitors are often considered overpriced.</li>
+        </ul>
       </div>
       <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;">
         <div class="piece-item reveal-scale d2"><img src="" data-img-idx="13" alt="Piece 1"><div class="piece-overlay"><span class="piece-label">Statement Dress</span></div></div>
@@ -715,17 +720,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div class="content-area">
       <div class="content-left">
         <div class="cursive-tag reveal d1">Strategy</div>
-        <div class="slide-heading reveal d2">Marketing &amp;<br>Launch Plan</div>
+        <div class="slide-heading reveal d2">SWOT<br>Analysis</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
         <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Phase 1 — Awareness</span>Social campaigns, influencer seeding &amp; teaser drops</li>
-          <li class="reveal d4"><span class="bullet-label">Phase 2 — Engagement</span>AI Finder launch &amp; pop-up runway events</li>
-          <li class="reveal d5"><span class="bullet-label">Phase 3 — Conversion</span>Flash sales, bundles &amp; in-app exclusives</li>
+          <li class="reveal d3"><span class="bullet-label">Strengths</span>Affordable pricing, high awareness, and existing market demand.</li>
+          <li class="reveal d4"><span class="bullet-label">Weaknesses</span>Cross-border shipping friction, quality/sizing concerns, and store operating costs.</li>
+          <li class="reveal d5"><span class="bullet-label">Opportunities</span>Convert demand into direct sales and remove reseller markups through localization.</li>
+          <li class="reveal d6"><span class="bullet-label">Threats</span>Economic instability, local competition, and import-policy changes.</li>
         </ul>
       </div>
       <div class="content-right">
@@ -739,17 +745,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div class="content-area">
       <div class="content-left">
-        <div class="cursive-tag reveal d1">Responsibility</div>
-        <div class="slide-heading reveal d2">Sustainability<br>&amp; Materials</div>
+        <div class="cursive-tag reveal d1">Strategy</div>
+        <div class="slide-heading reveal d2">Product<br>Strategy</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
         <ul class="bullet-list">
-          <li class="reveal d3"><span class="bullet-label">Eco Fabrics</span>Recycled polyester, organic cotton &amp; Tencel</li>
-          <li class="reveal d4"><span class="bullet-label">Reduced Waste</span>On-demand production minimising overstock</li>
-          <li class="reveal d5"><span class="bullet-label">Traceable Chain</span>Verified ethical sourcing across all tiers</li>
+          <li class="reveal d3"><span class="bullet-label">Modest-Wear Expansion</span>Fill the market gap with culturally aligned silhouettes.</li>
+          <li class="reveal d4"><span class="bullet-label">Seasonal Localization</span>Launch dedicated summer lines for Egypt's North Coast season.</li>
+          <li class="reveal d5"><span class="bullet-label">Value Positioning</span>Keep affordable pricing and promotions for price-sensitive shoppers.</li>
+          <li class="reveal d6"><span class="bullet-label">Fit &amp; Occasion Focus</span>Local sizing standards and occasion capsules (Ramadan, Eid, celebrations).</li>
         </ul>
       </div>
       <div class="content-right">
@@ -766,14 +773,14 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="inner-slide">
     <nav class="nav-strip">
           <span class="nav-brand">SHEIN <em>Egypt</em></span>
-          <span class="nav-season">Autumn 2025</span>
+          <span class="nav-season">2026</span>
         </nav>
     <div style="position:absolute;inset:0;top:56px;display:flex;">
       <div class="content-left" style="flex:0 0 45%;min-width:300px;">
-        <div class="cursive-tag reveal d1">Lookbook</div>
-        <div class="slide-heading reveal d2">Styling &amp;<br>Lookbook</div>
+        <div class="cursive-tag reveal d1">Strategy</div>
+        <div class="slide-heading reveal d2">Distribution<br>Strategy</div>
         <div class="red-line reveal d3" style="margin-bottom:24px"></div>
-        <p class="slide-body reveal d4">Curated outfits pairing SHEIN&apos;s Autumn 2026 pieces with Egyptian street style and special-occasion elegance.</p>
+        <p class="slide-body reveal d4">Open standalone SHEIN stores in Cairo and Alexandria, prioritise high-traffic malls, and combine in-store try-on with digital convenience for a seamless omnichannel journey.</p>
       </div>
       <div class="lookbook-wrap">
         <div class="lookbook-item reveal-scale d2"><img src="" data-img-idx="20" alt="Look 1"></div>
@@ -790,14 +797,14 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
       <div class="contact-left-ov"></div>
     </div>
     <div class="contact-right">
-      <div class="cursive-tag reveal d1">Get In Touch</div>
-      <div class="contact-heading reveal d2">Let&apos;s Get<br><em>in Touch!</em></div>
+      <div class="cursive-tag reveal d1">Promotional Marketing</div>
+      <div class="contact-heading reveal d2">Launch<br><em>Event</em></div>
       <div class="red-line reveal d3" style="margin-bottom:0"></div>
       <ul class="contact-items">
-        <li class="reveal d3">+123 456 7890</li>
-        <li class="reveal d4">www.reallygreatsite.com</li>
-        <li class="reveal d5">hello@reallygreatsite.com</li>
-        <li class="reveal d6">123 Anywhere St., Any City</li>
+        <li class="reveal d3">Nourhan Emad</li>
+        <li class="reveal d4">Kenzy Mamdouh</li>
+        <li class="reveal d5">Rawan Atef</li>
+        <li class="reveal d6">Sara Sabry</li>
       </ul>
     </div>
   </div>
