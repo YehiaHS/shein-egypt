@@ -654,7 +654,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
     <div class="content-area">
       <div class="content-left">
         <div class="cursive-tag reveal d1">Janah & Farah</div>
-        <div class="slide-heading reveal d2">1. Cultural Analysis</div>
+        <div class="slide-heading reveal d2">Cultural Analysis</div>
         <div class="red-line reveal d3" style="margin-bottom:28px"></div>
         <div class="slide-body slide-content">
         <ul class="bullet-list">
@@ -1219,13 +1219,10 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   </div>
 </div>
 <div class="slide" data-index="19" id="slide-19">
-
-  <div class="promo-slide">
-    <canvas class="bb-canvas" id="bb-ai"></canvas>
-    <div class="ai-overlay">
-      <div class="ai-top-ui">
-        <div class="ai-stats">
-          <div class="ai-stat-card"><div class="ai-stat-label">Style Match</div><div class="ai-stat-value" id="ai-match">--%</div></div>
+  <div style="position:absolute;inset:0;background:var(--dark);">
+    <iframe src="ai-outfit-finder.html" style="width:100%;height:100%;border:none;pointer-events:auto;" allow="camera; fullscreen"></iframe>
+  </div>
+</div>
           <div class="ai-stat-card"><div class="ai-stat-label">Trend Score</div><div class="ai-stat-value" id="ai-trend">--%</div></div>
         </div>
       </div>
@@ -2817,7 +2814,7 @@ function goTo(idx){
   if (current === 19 && activeScenes.ai) { activeScenes.ai(); activeScenes.ai = null; }
   if (current === 20 && activeScenes.runway) { activeScenes.runway(); activeScenes.runway = null; }
   if (idx === 18) { activeScenes.bus = makeBusScene(document.getElementById('bb-bus')); }
-  if (idx === 19) { activeScenes.ai = makeAIScene(document.getElementById('bb-ai')); }
+  if (idx === 19) { activeScenes.ai = (function(){return function(){};})(); }
   if (idx === 20) { activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway')); }
   
   // Background canvas optimization
@@ -3061,7 +3058,7 @@ document.addEventListener('mouseover', e => {
 // ── Three.js 3D scenes ──
 // Initial scene bootstrap check
 if (current === 18) activeScenes.bus = makeBusScene(document.getElementById('bb-bus'));
-if (current === 19) activeScenes.ai = makeAIScene(document.getElementById('bb-ai'));
+if (current === 19) activeScenes.ai = (function(){return function(){};})();
 if (current === 20) activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway'));
 
 </script>
