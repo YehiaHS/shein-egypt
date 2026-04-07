@@ -48,6 +48,13 @@ setTimeout(function(){
   var first=document.querySelector('.slide.active');
   if(first)loadSlideImages(first);
 },500);
+
+// Optimize resize with debounce
+var _resizeTimeout;
+window.addEventListener('resize', function(){
+  clearTimeout(_resizeTimeout);
+  _resizeTimeout = setTimeout(function(){ window.dispatchEvent(new Event('_optimizedResize')); }, 150);
+});
 })();
 </script>
 <style>
@@ -1355,6 +1362,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 //  SCENE 1 (v2): SHEIN Bus — stationary bus, scrolling city
 // ═══════════════════════════════════════════════════════
 function makeBusScene(canvas) {
+  var isStopped = false;
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
@@ -1733,6 +1741,7 @@ function makeBusScene(canvas) {
   var clock = new THREE.Clock();
 
   function animate() {
+    if (isStopped) return;
     requestAnimationFrame(animate);
     var dt = clock.getDelta();
     var t  = clock.getElapsedTime();
@@ -1886,17 +1895,29 @@ function makeBusScene(canvas) {
   }
   animate();
 
-  window.addEventListener('resize', function() {
+  window.addEventListener('_optimizedResize', function() {
     var nw = canvas.clientWidth, nh = canvas.clientHeight;
     camera.aspect = nw / nh; camera.updateProjectionMatrix();
     renderer.setSize(nw, nh);
   });
+  return function(){ 
+    isStopped = true;
+    renderer.dispose();
+    scene.traverse(function(obj){
+      if(obj.geometry) obj.geometry.dispose();
+      if(obj.material){
+        if(Array.isArray(obj.material)) obj.material.forEach(function(m){m.dispose();});
+        else obj.material.dispose();
+      }
+    });
+  };
 }
 
 // ═══════════════════════════════════════════════════════
 //  SCENE 2 (v2): AI Outfit Finder — canvas UI texture, no photo
 // ═══════════════════════════════════════════════════════
 function makeAIScene(canvas) {
+  var isStopped = false;
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
@@ -2167,6 +2188,7 @@ function makeAIScene(canvas) {
   var scanPos = 130; // px inside the 1024-tall canvas
 
   function animate() {
+    if (isStopped) return;
     requestAnimationFrame(animate);
     var dt = clock.getDelta();
     var t  = clock.getElapsedTime();
@@ -2247,16 +2269,28 @@ function makeAIScene(canvas) {
   }
   animate();
 
-  window.addEventListener('resize', function() {
+  window.addEventListener('_optimizedResize', function() {
     var nw = canvas.clientWidth, nh = canvas.clientHeight;
     camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh);
   });
+  return function(){
+    isStopped = true;
+    renderer.dispose();
+    scene.traverse(function(obj){
+      if(obj.geometry) obj.geometry.dispose();
+      if(obj.material){
+        if(Array.isArray(obj.material)) obj.material.forEach(function(m){m.dispose();});
+        else obj.material.dispose();
+      }
+    });
+  };
 }
 
 // ═══════════════════════════════════════════════════════
 //  SCENE 3 (v2): Runway Show — catwalk, spotlights, walking proxy
 // ═══════════════════════════════════════════════════════
 function makeRunwayScene(canvas) {
+  var isStopped = false;
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
@@ -2596,6 +2630,7 @@ function makeRunwayScene(canvas) {
   var charZ = -18;
 
   function animate() {
+    if (isStopped) return;
     requestAnimationFrame(animate);
     var dt = clock.getDelta();
     var t = clock.getElapsedTime() * 1.5; // Walk speed
@@ -2721,10 +2756,21 @@ function makeRunwayScene(canvas) {
   }
   animate();
 
-  window.addEventListener('resize', function() {
+  window.addEventListener('_optimizedResize', function() {
     var nw = canvas.clientWidth, nh = canvas.clientHeight;
     camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh);
   });
+  return function(){
+    isStopped = true;
+    renderer.dispose();
+    scene.traverse(function(obj){
+      if(obj.geometry) obj.geometry.dispose();
+      if(obj.material){
+        if(Array.isArray(obj.material)) obj.material.forEach(function(m){m.dispose();});
+        else obj.material.dispose();
+      }
+    });
+  };
 }
 
 
@@ -2764,7 +2810,9 @@ function makeRunwayScene(canvas) {
   var mx=0,my=0;
   document.addEventListener('mousemove',function(e){mx=(e.clientX/window.innerWidth-.5)*.5;my=(e.clientY/window.innerHeight-.5)*.5;});
   var t=0,orig=pos.slice(),gOrig=gPos.slice();
-  (function loop(){requestAnimationFrame(loop);t+=.0025;
+  (function loop(){
+    if(window._stopBgCanvas) return;
+    requestAnimationFrame(loop);t+=.0025;
     // Gentle wave motion on individual particles
     var pa=geo.attributes.position.array;
     for(var i=0;i<COUNT;i++){
@@ -2784,7 +2832,7 @@ function makeRunwayScene(canvas) {
     gPts.rotation.y=t*.06+mx*.2;gPts.rotation.x=t*.03-my*.15;
     pts.rotation.y=t*.06+mx*.2;pts.rotation.x=t*.03-my*.15;
     renderer.render(scene,camera);})();
-  window.addEventListener('resize',function(){
+  window.addEventListener('_optimizedResize',function(){
     camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth,window.innerHeight);});
 })();
@@ -2803,6 +2851,7 @@ var slides=document.querySelectorAll('.slide');
 var dots=document.querySelectorAll('.dot');
 var counter=document.getElementById('slide-counter');
 var progress=document.getElementById('progress-bar');
+var activeScenes = { bus: null, ai: null, runway: null };
 
 function pad(n){return String(n).padStart(2,'0');}
 
@@ -2817,9 +2866,20 @@ function triggerReveal(slide){
 function goTo(idx){
   if(transitioning||idx===current||idx<0||idx>=TOTAL)return;
   transitioning=true;
-  // Lazy-load images for the incoming slide
   if(window._lazyLoad)window._lazyLoad(idx);
   var prev=slides[current],next=slides[idx];
+  
+  // Lifecycle management for 3D scenes
+  if (current === 4 && activeScenes.bus) { activeScenes.bus(); activeScenes.bus = null; }
+  if (current === 5 && activeScenes.ai) { activeScenes.ai(); activeScenes.ai = null; }
+  if (current === 6 && activeScenes.runway) { activeScenes.runway(); activeScenes.runway = null; }
+  if (idx === 4) { activeScenes.bus = makeBusScene(document.getElementById('bb-bus')); }
+  if (idx === 5) { activeScenes.ai = makeAIScene(document.getElementById('bb-ai')); }
+  if (idx === 6) { activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway')); }
+  
+  // Background canvas optimization
+  window._stopBgCanvas = (idx >= 4 && idx <= 6) || idx === 12;
+
   prev.classList.add('leaving');
   next.classList.add('entering','active');
   prev.addEventListener('animationend',function h(){
@@ -2830,7 +2890,7 @@ function goTo(idx){
     counter.innerHTML='<span class="current-num">'+pad(idx+1)+'</span><span style="color:rgba(255,255,249,.3)"> / '+pad(TOTAL)+'</span>';
     progress.style.width=((idx+1)/TOTAL*100)+'%';
     triggerReveal(next);
-    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('_optimizedResize'));
     prev.removeEventListener('animationend',h);
   },{once:true});
 }
@@ -3080,9 +3140,10 @@ document.addEventListener('mouseover', e => {
 });
 
 // ── Three.js 3D scenes ──
-makeBusScene(document.getElementById('bb-bus'));
-makeAIScene(document.getElementById('bb-ai'));
-makeRunwayScene(document.getElementById('bb-runway'));
+// Initial scene bootstrap check
+if (current === 4) activeScenes.bus = makeBusScene(document.getElementById('bb-bus'));
+if (current === 5) activeScenes.ai = makeAIScene(document.getElementById('bb-ai'));
+if (current === 6) activeScenes.runway = makeRunwayScene(document.getElementById('bb-runway'));
 
 </script>
 </body>
