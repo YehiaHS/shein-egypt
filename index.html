@@ -207,13 +207,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   display:inline-block;position:relative;overflow:hidden;
   transition:transform .3s ease;}
 .s1-title:hover{transform:translate(-2px,-1px);}
-/* Diagonal light streak */
-.s1-title::before{content:'';position:absolute;top:-20%;left:-20%;width:140%;height:140%;
-  background:linear-gradient(135deg,transparent 35%,rgba(255,255,249,.18) 45%,
-    rgba(255,255,249,.25) 50%,rgba(255,255,249,.18) 55%,transparent 65%);
-  transform:translateX(-120%) rotate(-18deg);
-  animation:lightStreak 2.5s ease-out .3s forwards;pointer-events:none;}
-@keyframes lightStreak{to{transform:translateX(120%) rotate(-18deg);}}
+
 /* Character-by-character reveal */
 .s1-title .letter{display:inline-block;opacity:0;transform:translateY(60px) scale(.8);
   animation:charReveal .7s cubic-bezier(.23,1,.32,1) forwards;}
@@ -438,7 +432,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 .ss-product img{width:100%;height:140px;object-fit:cover;display:block;}
 .ss-product-info{padding:8px;}
 .ss-product-name{font-size:11.5px;color:#222;margin-bottom:4px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ss-product-price{font-size:14px;font-weight:900;color:#FF3131;}
 .ss-product-old{font-size:11px;color:#999;text-decoration:line-through;margin-right:4px;}
 .ss-product-add{width:100%;background:#FF3131;color:#fff;border:none;
@@ -478,7 +472,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 .app-product img{width:100%;height:110px;object-fit:cover;display:block;}
 .app-product-info{padding:6px;}
 .app-product-name{font-size:10px;color:#333;margin-bottom:3px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .app-product-price{font-size:12px;font-weight:900;color:#FF3131;}
 .app-cart-btn{width:100%;background:#FF3131;color:#fff;border:none;
   padding:5px;font-size:10px;font-weight:700;cursor:pointer;
@@ -545,6 +539,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   background:linear-gradient(135deg,rgba(255,49,49,.08),transparent 40%,transparent 60%,rgba(255,49,49,.04));
   pointer-events:none;
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;border-radius:inherit;opacity:0;
   transition:opacity .6s ease;}
 .slide.active .content-left::before,.slide.active .browser-panel::before,.slide.active .phone-panel::before{opacity:1;}
@@ -650,7 +645,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div style="position:absolute;inset:0;background:var(--black)"></div>
   <img class="s1-photo" src="" data-img-idx="0" alt="SHEIN Cover">
   <div class="s1-overlay"></div>
-  <canvas id="title-glow" style="position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.6;"></canvas>
+
   <div class="s1-content">
     <div class="s1-eyebrow reveal d1">Fashion Collection</div>
     <div class="s1-title reveal d2"><span class="letter">S</span><span class="letter">H</span><span class="letter red-char">E</span><span class="letter">I</span><span class="letter">N</span></div>
@@ -1366,8 +1361,8 @@ function makeBusScene(canvas) {
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1);
   renderer.setSize(W, H);
   renderer.shadowMap.enabled = true;
 
@@ -1669,7 +1664,7 @@ function makeBusScene(canvas) {
   }
 
   // ── Rain particles (elongated streaks for cinematic look) ─
-  var RAIN_COUNT = 800, rainGeo = new THREE.BufferGeometry();
+  var RAIN_COUNT = 400, rainGeo = new THREE.BufferGeometry();
   var rainPos = new Float32Array(RAIN_COUNT*3);
   for (var ri=0; ri<RAIN_COUNT; ri++) {
     rainPos[ri*3] = (Math.random()-.5)*50;
@@ -1683,7 +1678,7 @@ function makeBusScene(canvas) {
   scene.add(rainSys);
 
   // ── Rain splash particles at road level ─────────────────
-  var SPLASH_COUNT = 120, splashGeo = new THREE.BufferGeometry();
+  var SPLASH_COUNT = 60, splashGeo = new THREE.BufferGeometry();
   var splashPos = new Float32Array(SPLASH_COUNT*3);
   var splashVels = [];
   for (var si=0; si<SPLASH_COUNT; si++) {
@@ -1921,8 +1916,8 @@ function makeAIScene(canvas) {
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1);
   renderer.setSize(W, H);
 
   var scene = new THREE.Scene();
@@ -2120,7 +2115,7 @@ function makeAIScene(canvas) {
   });
 
   // Particles — multi-color with additive blending for holographic feel
-  var pCount = 800, pGeo = new THREE.BufferGeometry();
+  var pCount = 400, pGeo = new THREE.BufferGeometry();
   var pPos = new Float32Array(pCount * 3);
   var pCol = new Float32Array(pCount * 3);
   for (var pi = 0; pi < pCount; pi++) {
@@ -2294,8 +2289,8 @@ function makeRunwayScene(canvas) {
   var W = canvas.clientWidth  || window.innerWidth * 0.5;
   var H = canvas.clientHeight || window.innerHeight;
 
-  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.5 : 1);
   renderer.setSize(W, H);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -2585,7 +2580,7 @@ function makeRunwayScene(canvas) {
   scene.add(charGrp);
 
   // Particles (confetti/floating dust) — multi-color, varying sizes, with brownian motion
-  var pCount = 600, pGeo = new THREE.BufferGeometry();
+  var pCount = 300, pGeo = new THREE.BufferGeometry();
   var pPos = new Float32Array(pCount * 3);
   var pCol = new Float32Array(pCount * 3);
   var pVels = []; // per-particle velocity for brownian motion
@@ -2777,12 +2772,12 @@ function makeRunwayScene(canvas) {
 (function(){
   var canvas=document.getElementById('bg-canvas');
   var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:false});
-  renderer.setPixelRatio(1.5);
+  renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1.2 : 1);
   renderer.setSize(window.innerWidth,window.innerHeight);
   var scene=new THREE.Scene();
   var camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
   camera.position.z=5;
-  var COUNT=700, geo=new THREE.BufferGeometry();
+  var COUNT=300, geo=new THREE.BufferGeometry();
   var pos=new Float32Array(COUNT*3), col=new Float32Array(COUNT*3);
   for(var i=0;i<COUNT;i++){
     pos[i*3]=(Math.random()-.5)*20;pos[i*3+1]=(Math.random()-.5)*20;pos[i*3+2]=(Math.random()-.5)*10;
@@ -2798,7 +2793,7 @@ function makeRunwayScene(canvas) {
   scene.add(pts);
 
   // Golden glow up-particles (behind SHEIN title area)
-  var gCount=120,gGeo=new THREE.BufferGeometry(),gPos=new Float32Array(gCount*3);
+  var gCount=60,gGeo=new THREE.BufferGeometry(),gPos=new Float32Array(gCount*3);
   for(var gi=0;gi<gCount;gi++){
     gPos[gi*3]=(Math.random()-.5)*4+0;gPos[gi*3+1]=-2+Math.random()*6;gPos[gi*3+2]=(Math.random()-.5)*2+2;
   }
@@ -2895,31 +2890,7 @@ function goTo(idx){
   },{once:true});
 }
 
-// Golden glow particles behind title
-(function(){
-  var cv=document.getElementById('title-glow');
-  if(!cv)return;
-  var ctx=cv.getContext('2d');
-  function resize(){cv.width=cv.parentElement.offsetWidth;cv.height=cv.parentElement.offsetHeight;}
-  resize();
-  var particles=[];
-  for(var i=0;i<40;i++){
-    particles.push({x:Math.random()*600,y:cv.height+Math.random()*40,
-      size:1+Math.random()*3,velY:-0.3-Math.random()*0.5,velX:(Math.random()-0.5)*0.3,
-      alpha:0.3+Math.random()*0.5,color:Math.random()>.5?'#ffd700':'#ff6b35'});
-  }
-  (function loop(){requestAnimationFrame(loop);
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i];
-      p.x+=p.velX;p.y+=p.velY;p.alpha-=0.002;
-      if(p.y<0||p.alpha<=0){
-        p.x=Math.random()*600;p.y=cv.height;p.alpha=0.3+Math.random()*0.5;
-      }
-      ctx.save();ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.restore();
-    }
-  })();
-})();
+
 
 triggerReveal(slides[0]);
 document.getElementById('btn-prev').addEventListener('click',function(){goTo(current-1);});
