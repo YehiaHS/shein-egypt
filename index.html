@@ -610,10 +610,22 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 <div class="dot" data-slide="18"></div>
 <div class="dot" data-slide="19"></div>
 <div class="dot" data-slide="20"></div>
+<div class="dot" data-slide="21"></div>
 </div>
 
 
-<div id="slides-wrap">
+<button class="arrow-btn" id="btn-prev" aria-label="Previous">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
+<button class="arrow-btn" id="btn-next" aria-label="Next">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+</button>
+
+<div id="kbd-hint">
+  <span class="kbadge">&#8592;</span><span class="kbadge">&#8594;</span>
+  &nbsp;navigate
+</div>
+
 <div id="slides-wrap">
 
 <div class="slide active" data-index="0" id="slide-0">
@@ -622,15 +634,15 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
   <div class="s1-overlay"></div>
   <div class="s1-content">
     <div class="s1-eyebrow reveal d1">International Marketing</div>
-    <div class="s1-title reveal d2"><span class="letter">S</span><span class="letter">H</span><span class="letter red-char">E</span><span class="letter">I</span><span class="letter">N</span></div>
-    <div class="s1-year reveal d3">Egypt Market Entry</div>
+    <div class="s1-title reveal d2" style="line-height:0.8;"><span class="letter">S</span><span class="letter">H</span><span class="letter red-char">E</span><span class="letter">I</span><span class="letter">N</span><br><span style="font-size:0.5em;letter-spacing:15px;font-weight:700;color:var(--red);">EGYPT</span></div>
+    <div class="s1-year reveal d3" style="margin-top:20px;">Market Entry 2026</div>
     <div class="red-line s1-divider"></div>
     <div class="s1-sub reveal d4">Presented by</div>
     <div class="s1-names reveal d5">
       Yehia &nbsp;&middot;&nbsp; Janah &nbsp;&middot;&nbsp; Farah
     </div>
   </div>
-  <div class="s1-store reveal d6">Egypt</div>
+  
 </div>
 <div class="slide" data-index="1" id="slide-1">
 
@@ -1247,6 +1259,30 @@ body::after{content:'';position:fixed;inset:0;z-index:9000;pointer-events:none;
 </div>
 
 <!-- Product detail modal -->
+
+<div class="slide" data-index="21" id="slide-21">
+  <div class="inner-slide">
+    <nav class="nav-strip">
+      <span class="nav-brand">SHEIN <em>Egypt</em></span>
+      <span class="nav-season">2026</span>
+    </nav>
+    <div class="content-area" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px;">
+      <div class="cursive-tag reveal d1">Promo Innovation</div>
+      <div class="slide-heading reveal d2" style="font-size: 48px; margin-bottom: 30px;">AI <em>Billboards</em></div>
+      <div class="red-line reveal d3" style="width: 100px; margin-bottom: 40px;"></div>
+      
+      <div class="reveal-scale d4" style="display: flex; gap: 40px; justify-content: center; width: 100%; max-width: 1200px;">
+        <div style="flex: 1; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <video src="assets/cars_moving_and_202604071411.mp4" autoplay loop muted playsinline style="width: 100%; height: auto; display: block;"></video>
+        </div>
+        <div style="flex: 1; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <video src="assets/Cars_and_character_202604071410.mp4" autoplay loop muted playsinline style="width: 100%; height: auto; display: block;"></video>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="prod-modal">
   <div class="prod-modal-inner">
     <img class="prod-modal-img" id="pm-img" src="" alt="">
@@ -2753,7 +2789,7 @@ document.addEventListener('mousemove',function(e){
 });
 
 // ── Slide engine ──
-var TOTAL=21,current=0,transitioning=false;
+var TOTAL=22,current=0,transitioning=false;
 var slides=document.querySelectorAll('.slide');
 var dots=document.querySelectorAll('.dot');
 var counter=document.getElementById('slide-counter');
